@@ -9,7 +9,7 @@ import typer
 import yaml
 from dotenv import load_dotenv
 
-from models import DebateCategory, ModelConfig
+from models import DebateCategory, ModelConfig, WeaknessType
 
 load_dotenv()
 
@@ -38,6 +38,7 @@ def generate(
     control_ratio: Annotated[float, typer.Option(help="Fraction of control debates")] = 0.2,
     category: Annotated[Optional[str], typer.Option(help="Filter by category: policy|values|empirical")] = None,
     resolution: Annotated[Optional[str], typer.Option("-r", help="Use a specific resolution")] = None,
+    weakness: Annotated[Optional[str], typer.Option(help="Force weakness type: weak_evidence|argument_dropping|logical_gaps|burden_of_proof")] = None,
 ) -> None:
     """Generate synthetic debates."""
     from generator import generate_batch
@@ -56,6 +57,7 @@ def generate(
     )
 
     cat_filter = DebateCategory(category) if category else None
+    weakness_override = WeaknessType(weakness) if weakness else None
 
     written = generate_batch(
         resolutions=resolutions,
@@ -66,6 +68,7 @@ def generate(
         control_ratio=control_ratio,
         category_filter=cat_filter,
         resolution_override=resolution,
+        weakness_override=weakness_override,
     )
 
     typer.echo(f"\nGenerated {len(written)} debate(s) in {OUTPUT_DIR}/")

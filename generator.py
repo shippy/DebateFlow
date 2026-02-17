@@ -101,6 +101,7 @@ def generate_batch(
     control_ratio: float = 0.2,
     category_filter: DebateCategory | None = None,
     resolution_override: str | None = None,
+    weakness_override: WeaknessType | None = None,
 ) -> list[Path]:
     """Generate n debates and write each as JSON to output_dir.
 
@@ -131,7 +132,13 @@ def generate_batch(
             res_text = chosen["text"]
             cat = DebateCategory(chosen["category"])
 
-        constraint = _pick_constraint(control_ratio)
+        if weakness_override is not None:
+            constraint = ConstraintInfo(
+                type=weakness_override,
+                target_side=random.choice([Side.AFF, Side.NEG]),
+            )
+        else:
+            constraint = _pick_constraint(control_ratio)
         label = "control" if constraint.type is None else constraint.type.value
         console.print(
             f"\n[bold]Debate {i + 1}/{n}[/bold]: {res_text[:60]}{'...' if len(res_text) > 60 else ''} "
