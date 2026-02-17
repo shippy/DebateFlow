@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DebateFlow Annotation Tool</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <style>
   :root {
@@ -44,7 +45,12 @@
   .turn-header { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
   .turn-header.aff { color: #2563eb; }
   .turn-header.neg { color: #dc2626; }
-  .turn-text { font-size: 14px; white-space: pre-wrap; }
+  .turn-text { font-size: 14px; line-height: 1.6; }
+  .turn-text p { margin-bottom: 0.6em; }
+  .turn-text ul, .turn-text ol { margin: 0.4em 0 0.6em 1.5em; }
+  .turn-text h1, .turn-text h2, .turn-text h3 { margin: 0.8em 0 0.3em; font-size: 14px; font-weight: 700; }
+  .turn-text strong { font-weight: 700; }
+  .turn-text blockquote { border-left: 3px solid var(--border); padding-left: 12px; color: var(--muted); margin: 0.4em 0; }
 
   .scoring { background: var(--surface); border-left: 1px solid var(--border); padding: 24px; overflow-y: auto; }
   .scoring h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
@@ -61,7 +67,7 @@
   .score-row .side-label { width: 32px; font-weight: 600; font-size: 12px; }
   .score-row .side-label.aff { color: #2563eb; }
   .score-row .side-label.neg { color: #dc2626; }
-  .score-btn { width: 36px; height: 28px; border: 1px solid var(--border); background: var(--surface); border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+  .score-btn { min-width: 56px; height: 28px; padding: 0 8px; border: 1px solid var(--border); background: var(--surface); border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.15s; }
   .score-btn:hover { border-color: var(--primary); }
   .score-btn.selected { background: var(--primary); color: white; border-color: var(--primary); }
   .score-btn.incomplete { border-color: var(--danger); }
@@ -127,7 +133,7 @@
             <div class="turn-header" :class="turn.speaker">
               <span x-text="turnLabel(turn)"></span>
             </div>
-            <div class="turn-text" x-text="turn.text"></div>
+            <div class="turn-text" x-html="renderMarkdown(turn.text)"></div>
           </div>
         </template>
       </div>
@@ -152,20 +158,20 @@
             <div class="dim-def" x-text="dim.definition"></div>
             <div class="score-row">
               <span class="side-label aff">AFF</span>
-              <template x-for="v in [1,2,3]" :key="'aff'+di+v">
+              <template x-for="v in [{n:1,l:'Weak'},{n:2,l:'OK'},{n:3,l:'Strong'}]" :key="'aff'+di+v.n">
                 <button class="score-btn"
-                        :class="{ selected: form.scores[dim.key]?.aff === v, incomplete: showIncomplete && !form.scores[dim.key]?.aff }"
-                        @click="setScore(dim.key, 'aff', v)"
-                        x-text="v"></button>
+                        :class="{ selected: form.scores[dim.key]?.aff === v.n, incomplete: showIncomplete && !form.scores[dim.key]?.aff }"
+                        @click="setScore(dim.key, 'aff', v.n)"
+                        x-text="v.l"></button>
               </template>
             </div>
             <div class="score-row">
               <span class="side-label neg">NEG</span>
-              <template x-for="v in [1,2,3]" :key="'neg'+di+v">
+              <template x-for="v in [{n:1,l:'Weak'},{n:2,l:'OK'},{n:3,l:'Strong'}]" :key="'neg'+di+v.n">
                 <button class="score-btn"
-                        :class="{ selected: form.scores[dim.key]?.neg === v, incomplete: showIncomplete && !form.scores[dim.key]?.neg }"
-                        @click="setScore(dim.key, 'neg', v)"
-                        x-text="v"></button>
+                        :class="{ selected: form.scores[dim.key]?.neg === v.n, incomplete: showIncomplete && !form.scores[dim.key]?.neg }"
+                        @click="setScore(dim.key, 'neg', v.n)"
+                        x-text="v.l"></button>
               </template>
             </div>
           </div>
@@ -275,6 +281,10 @@ function annotationApp() {
 
     currentDebate() {
       return this.debates[this.currentIndex] || { metadata: { resolution: '' }, turns: [] };
+    },
+
+    renderMarkdown(text) {
+      return marked.parse(text || '');
     },
 
     turnLabel(turn) {
