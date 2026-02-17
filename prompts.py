@@ -96,13 +96,13 @@ def build_system_prompt(
 
     Weakness injection is applied only when:
     - This side is the constrained side
-    - For argument_dropping: only on response/closing turns
+    - For argument_dropping: only on turns that follow an opponent speech (not opening)
     """
     prompt = BASE_SYSTEM_PROMPTS[side]
 
     if weakness and target_side == side:
-        # argument_dropping only applies to response/closing (need opponent args to drop)
-        if weakness == WeaknessType.ARGUMENT_DROPPING and role not in ("response", "closing"):
+        # argument_dropping only applies after opponent has spoken (need args to drop)
+        if weakness == WeaknessType.ARGUMENT_DROPPING and role == "opening":
             return prompt
         prompt += "\n\n" + WEAKNESS_TEMPLATES[weakness]
 

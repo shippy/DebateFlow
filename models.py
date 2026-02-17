@@ -6,7 +6,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from typing import Literal
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class DebateCategory(str, Enum):
@@ -33,11 +35,14 @@ class Side(str, Enum):
     NEG = "neg"
 
 
+TurnRole = Literal["opening", "response", "rebuttal", "closing"]
+
+
 class Turn(BaseModel):
     """A single speech in a debate."""
 
     speaker: Side
-    role: str  # opening | response | rebuttal | closing
+    role: TurnRole
     text: str
 
 
@@ -74,4 +79,11 @@ class Debate(BaseModel):
     """A complete 4-turn debate with metadata."""
 
     metadata: DebateMetadata
-    turns: list[Turn]  # exactly 4
+    turns: list[Turn]
+
+    @field_validator("turns")
+    @classmethod
+    def exactly_four_turns(cls, v: list[Turn]) -> list[Turn]:
+        if len(v) != 4:
+            raise ValueError(f"Debate must have exactly 4 turns, got {len(v)}")
+        return v

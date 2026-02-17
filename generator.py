@@ -15,6 +15,7 @@ from models import (
     ModelConfig,
     Side,
     Turn,
+    TurnRole,
     WeaknessType,
 )
 from prompts import build_system_prompt, build_user_prompt
@@ -23,7 +24,7 @@ from providers import make_agent
 console = Console()
 
 # Turn sequence: (speaker, role)
-TURN_SEQUENCE: list[tuple[Side, str]] = [
+TURN_SEQUENCE: list[tuple[Side, TurnRole]] = [
     (Side.AFF, "opening"),
     (Side.NEG, "response"),
     (Side.AFF, "rebuttal"),
@@ -133,7 +134,7 @@ def generate_batch(
         constraint = _pick_constraint(control_ratio)
         label = "control" if constraint.type is None else constraint.type.value
         console.print(
-            f"\n[bold]Debate {i + 1}/{n}[/bold]: {res_text[:60]}... "
+            f"\n[bold]Debate {i + 1}/{n}[/bold]: {res_text[:60]}{'...' if len(res_text) > 60 else ''} "
             f"[{'green' if constraint.type is None else 'yellow'}]{label}[/]"
         )
 

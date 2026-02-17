@@ -39,8 +39,8 @@ def test_weakness_injected_on_constrained_side():
         assert "CONSTRAINT" in prompt, f"Missing constraint for {wt}"
 
 
-def test_argument_dropping_only_on_response_and_closing():
-    # Opening — should NOT get argument_dropping
+def test_argument_dropping_skipped_only_for_opening():
+    # Opening — should NOT get argument_dropping (no opponent args yet)
     prompt = build_system_prompt(
         Side.AFF,
         weakness=WeaknessType.ARGUMENT_DROPPING,
@@ -49,14 +49,14 @@ def test_argument_dropping_only_on_response_and_closing():
     )
     assert "CONSTRAINT" not in prompt
 
-    # Rebuttal — should NOT get argument_dropping
+    # Rebuttal — SHOULD get it (Aff rebuttal follows opponent speeches)
     prompt = build_system_prompt(
         Side.AFF,
         weakness=WeaknessType.ARGUMENT_DROPPING,
         target_side=Side.AFF,
         role="rebuttal",
     )
-    assert "CONSTRAINT" not in prompt
+    assert "CONSTRAINT" in prompt
 
     # Response — SHOULD get it
     prompt = build_system_prompt(

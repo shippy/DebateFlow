@@ -2,33 +2,10 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from pathlib import Path
 
+from compile import compute_stats
 from models import Debate
-
-
-def _compute_stats(debates: list[Debate]) -> dict:
-    """Compute summary statistics for the dataset card."""
-    weakness_counts: Counter[str] = Counter()
-    category_counts: Counter[str] = Counter()
-    control_count = 0
-
-    for d in debates:
-        category_counts[d.metadata.category.value] += 1
-        if d.metadata.is_control:
-            control_count += 1
-        else:
-            assert d.metadata.constraint.type is not None
-            weakness_counts[d.metadata.constraint.type.value] += 1
-
-    return {
-        "total": len(debates),
-        "control": control_count,
-        "constrained": len(debates) - control_count,
-        "weakness_counts": dict(sorted(weakness_counts.items())),
-        "category_counts": dict(sorted(category_counts.items())),
-    }
 
 
 def _size_category(n: int) -> str:
@@ -42,13 +19,16 @@ def _size_category(n: int) -> str:
 
 def generate_card(debates: list[Debate]) -> str:
     """Generate a HuggingFace dataset card README.md from debate data."""
-    stats = _compute_stats(debates)
+    stats = compute_stats(debates)
 
     weakness_lines = "\n".join(
         f"  - `{k}`: {v}" for k, v in stats["weakness_counts"].items()
     )
     category_lines = "\n".join(
         f"  - `{k}`: {v}" for k, v in stats["category_counts"].items()
+    )
+    side_lines = "\n".join(
+        f"  - `{k}`: {v}" for k, v in stats["side_counts"].items()
     )
 
     return f"""---
@@ -102,6 +82,9 @@ Each instance contains:
 
 **By category:**
 {category_lines}
+
+**By constrained side:**
+{side_lines}
 
 ## Dataset Creation
 

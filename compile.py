@@ -13,6 +13,34 @@ from models import Debate
 console = Console()
 
 
+def compute_stats(debates: list[Debate]) -> dict:
+    """Compute summary statistics for a list of debates."""
+    weakness_counts: Counter[str] = Counter()
+    category_counts: Counter[str] = Counter()
+    side_counts: Counter[str] = Counter()
+    control_count = 0
+
+    for d in debates:
+        category_counts[d.metadata.category.value] += 1
+        if d.metadata.is_control:
+            control_count += 1
+            weakness_counts["control"] += 1
+        else:
+            assert d.metadata.constraint.type is not None
+            assert d.metadata.constraint.target_side is not None
+            weakness_counts[d.metadata.constraint.type.value] += 1
+            side_counts[d.metadata.constraint.target_side.value] += 1
+
+    return {
+        "total": len(debates),
+        "control": control_count,
+        "constrained": len(debates) - control_count,
+        "weakness_counts": dict(sorted(weakness_counts.items())),
+        "category_counts": dict(sorted(category_counts.items())),
+        "side_counts": dict(sorted(side_counts.items())),
+    }
+
+
 def compile_to_jsonl(
     input_dir: Path,
     output_path: Path,
@@ -46,30 +74,15 @@ def show_stats(input_dir: Path) -> None:
         return
 
     debates = [Debate.model_validate_json(f.read_text()) for f in files]
+    stats = compute_stats(debates)
 
-    weakness_counts: Counter[str] = Counter()
-    category_counts: Counter[str] = Counter()
-    side_counts: Counter[str] = Counter()
-    control_count = 0
-
-    for d in debates:
-        category_counts[d.metadata.category.value] += 1
-        if d.metadata.is_control:
-            control_count += 1
-            weakness_counts["control"] += 1
-        else:
-            assert d.metadata.constraint.type is not None
-            assert d.metadata.constraint.target_side is not None
-            weakness_counts[d.metadata.constraint.type.value] += 1
-            side_counts[d.metadata.constraint.target_side.value] += 1
-
-    console.print(f"\n[bold]Dataset: {len(debates)} debates[/bold]\n")
+    console.print(f"\n[bold]Dataset: {stats['total']} debates[/bold]\n")
 
     # Weakness distribution
     table = Table(title="Weakness Distribution")
     table.add_column("Type", style="cyan")
     table.add_column("Count", justify="right")
-    for wt, count in sorted(weakness_counts.items()):
+    for wt, count in sorted(stats["weakness_counts"].items()):
         table.add_row(wt, str(count))
     console.print(table)
 
@@ -77,17 +90,17 @@ def show_stats(input_dir: Path) -> None:
     table = Table(title="Category Distribution")
     table.add_column("Category", style="cyan")
     table.add_column("Count", justify="right")
-    for cat, count in sorted(category_counts.items()):
+    for cat, count in sorted(stats["category_counts"].items()):
         table.add_row(cat, str(count))
     console.print(table)
 
     # Constrained side distribution
-    if side_counts:
+    if stats["side_counts"]:
         table = Table(title="Constrained Side Distribution")
         table.add_column("Side", style="cyan")
         table.add_column("Count", justify="right")
-        for side, count in sorted(side_counts.items()):
+        for side, count in sorted(stats["side_counts"].items()):
             table.add_row(side, str(count))
         console.print(table)
 
-    console.print(f"\nControl: {control_count} | Constrained: {len(debates) - control_count}")
+    console.print(f"\nControl: {stats['control']} | Constrained: {stats['constrained']}")
