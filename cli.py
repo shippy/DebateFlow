@@ -16,6 +16,7 @@ load_dotenv()
 app = typer.Typer(help="DebateFlow — synthetic debate generation pipeline")
 
 OUTPUT_DIR = Path("output/debates")
+ANNOTATIONS_DIR = Path("output/annotations")
 JSONL_PATH = Path("output/debateflow.jsonl")
 RESOLUTIONS_PATH = Path("resolutions.yaml")
 
@@ -103,6 +104,70 @@ def publish(
         raise typer.Exit(1)
 
     do_publish(repo_id=repo_id, input_dir=OUTPUT_DIR, dry_run=dry_run, private=not public)
+
+
+@app.command()
+def annotate_status() -> None:
+    """Show annotation progress — which debates are annotated, by whom."""
+    from agreement import load_annotations
+    from models import Debate
+
+    # Load debates
+    debate_ids: dict[str, str] = {}
+    if OUTPUT_DIR.exists():
+        for p in sorted(OUTPUT_DIR.glob("*.json")):
+            d = Debate.model_validate_json(p.read_text())
+            debate_ids[d.metadata.debate_id] = d.metadata.resolution
+
+    # Load annotations
+    annotations = load_annotations(ANNOTATIONS_DIR)
+    annotated: dict[str, list[str]] = {}
+    for ann in annotations:
+        annotated.setdefault(ann.debate_id, []).append(ann.annotator_id)
+
+    typer.echo(f"Debates: {len(debate_ids)}  |  Annotations: {len(annotations)}")
+    typer.echo("")
+
+    if not debate_ids:
+        typer.echo("No debates found in output/debates/")
+        return
+
+    for did, res in debate_ids.items():
+        short_res = res[:60] + ("..." if len(res) > 60 else "")
+        annotators = annotated.get(did, [])
+        if annotators:
+            who = ", ".join(sorted(annotators))
+            typer.echo(f"  [{did}] {short_res}  — annotated by: {who}")
+        else:
+            typer.echo(f"  [{did}] {short_res}  — not annotated")
+
+    n_annotated = sum(1 for did in debate_ids if did in annotated)
+    typer.echo(f"\nCoverage: {n_annotated}/{len(debate_ids)} debates annotated")
+
+
+@app.command()
+def annotate_agreement() -> None:
+    """Compute inter-annotator agreement (requires 2+ annotators on same debates)."""
+    from agreement import compute_agreement, load_annotations
+
+    annotations = load_annotations(ANNOTATIONS_DIR)
+    if not annotations:
+        typer.echo("No annotations found in output/annotations/")
+        raise typer.Exit(1)
+
+    result = compute_agreement(annotations)
+
+    if result["paired_debates"] == 0:
+        typer.echo("No debates with 2 annotators found. Need overlapping annotations.")
+        raise typer.Exit(1)
+
+    typer.echo(f"Paired debates: {result['paired_debates']}")
+    typer.echo(f"Winner kappa:   {result['winner_kappa']:.3f}")
+    typer.echo("")
+    typer.echo("Per-dimension kappa (aff / neg):")
+    dim_agreement: dict[str, dict[str, float]] = result["dimension_agreement"]  # type: ignore[assignment]
+    for dim, scores in dim_agreement.items():
+        typer.echo(f"  {dim:25s}  {scores['aff_kappa']:.3f} / {scores['neg_kappa']:.3f}")
 
 
 if __name__ == "__main__":

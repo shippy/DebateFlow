@@ -1,4 +1,4 @@
-"""Pydantic data models for DebateFlow synthetic debate generation."""
+"""Pydantic data models for DebateFlow synthetic debate generation and annotation."""
 
 from __future__ import annotations
 
@@ -86,4 +86,58 @@ class Debate(BaseModel):
     def exactly_four_turns(cls, v: list[Turn]) -> list[Turn]:
         if len(v) != 4:
             raise ValueError(f"Debate must have exactly 4 turns, got {len(v)}")
+        return v
+
+
+ANNOTATION_DIMENSIONS = [
+    "clash_engagement",
+    "burden_fulfillment",
+    "rebuttal_quality",
+    "argument_extension",
+    "strategic_adaptation",
+]
+
+
+class DimensionScore(BaseModel):
+    """Score for a single rubric dimension, per side."""
+
+    dimension: str
+    aff_score: int = Field(ge=1, le=3)
+    neg_score: int = Field(ge=1, le=3)
+
+    @field_validator("dimension")
+    @classmethod
+    def valid_dimension(cls, v: str) -> str:
+        if v not in ANNOTATION_DIMENSIONS:
+            raise ValueError(
+                f"Unknown dimension '{v}', must be one of {ANNOTATION_DIMENSIONS}"
+            )
+        return v
+
+
+class Annotation(BaseModel):
+    """Human annotation for a single debate."""
+
+    debate_id: str
+    annotator_id: str
+    winner: Side
+    winner_justification: str
+    dimension_scores: list[DimensionScore]
+    annotated_at: datetime
+    annotation_version: str = "0.1.0"
+
+    @field_validator("dimension_scores")
+    @classmethod
+    def exactly_five_dimensions(
+        cls, v: list[DimensionScore],
+    ) -> list[DimensionScore]:
+        if len(v) != 5:
+            raise ValueError(
+                f"Must have exactly 5 dimension scores, got {len(v)}"
+            )
+        names = [ds.dimension for ds in v]
+        if sorted(names) != sorted(ANNOTATION_DIMENSIONS):
+            raise ValueError(
+                f"Dimensions must be exactly {ANNOTATION_DIMENSIONS}, got {names}"
+            )
         return v

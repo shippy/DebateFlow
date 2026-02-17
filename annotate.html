@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DebateFlow Annotation Tool</title>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --border: #dee2e6;
+    --text: #212529;
+    --muted: #6c757d;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --danger: #dc3545;
+    --success: #198754;
+    --warn: #ffc107;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .header h1 { font-size: 16px; font-weight: 600; }
+  .header .progress { font-size: 14px; color: var(--muted); }
+  .header .annotator { font-size: 13px; color: var(--muted); }
+
+  .setup { max-width: 500px; margin: 80px auto; text-align: center; padding: 40px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); }
+  .setup h2 { margin-bottom: 16px; }
+  .setup input[type="text"] { padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; width: 200px; margin-bottom: 16px; }
+  .setup .drop-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 40px 20px; margin: 16px 0; cursor: pointer; transition: border-color 0.2s; }
+  .setup .drop-zone:hover, .setup .drop-zone.dragover { border-color: var(--primary); }
+  .setup .drop-zone p { color: var(--muted); font-size: 14px; }
+  .setup button { background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: 4px; font-size: 14px; cursor: pointer; }
+  .setup button:hover { background: var(--primary-hover); }
+  .setup button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .main { display: grid; grid-template-columns: 1fr 380px; gap: 0; height: calc(100vh - 49px); }
+  .transcript { padding: 24px; overflow-y: auto; }
+  .resolution { font-size: 15px; font-weight: 600; margin-bottom: 20px; padding: 12px 16px; background: #eef2ff; border-radius: 6px; border-left: 4px solid var(--primary); }
+
+  .turn { margin-bottom: 16px; padding: 16px; background: var(--surface); border-radius: 6px; border: 1px solid var(--border); }
+  .turn-header { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .turn-header.aff { color: #2563eb; }
+  .turn-header.neg { color: #dc2626; }
+  .turn-text { font-size: 14px; white-space: pre-wrap; }
+
+  .scoring { background: var(--surface); border-left: 1px solid var(--border); padding: 24px; overflow-y: auto; }
+  .scoring h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+
+  .winner-section { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .winner-section label { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 4px 0; cursor: pointer; }
+  .winner-section input[type="radio"] { cursor: pointer; }
+
+  .dim-section { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+  .dim-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
+  .dim-title .help { font-size: 11px; color: var(--muted); cursor: help; font-weight: 400; }
+  .dim-def { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-style: italic; }
+  .score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; }
+  .score-row .side-label { width: 32px; font-weight: 600; font-size: 12px; }
+  .score-row .side-label.aff { color: #2563eb; }
+  .score-row .side-label.neg { color: #dc2626; }
+  .score-btn { width: 36px; height: 28px; border: 1px solid var(--border); background: var(--surface); border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+  .score-btn:hover { border-color: var(--primary); }
+  .score-btn.selected { background: var(--primary); color: white; border-color: var(--primary); }
+  .score-btn.incomplete { border-color: var(--danger); }
+
+  .justification { margin-top: 16px; }
+  .justification textarea { width: 100%; height: 80px; border: 1px solid var(--border); border-radius: 4px; padding: 8px; font-size: 13px; font-family: inherit; resize: vertical; }
+  .justification label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; }
+
+  .save-btn { margin-top: 16px; width: 100%; padding: 10px; background: var(--success); color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .save-btn:hover { background: #157347; }
+  .save-btn:disabled { background: var(--muted); cursor: not-allowed; }
+
+  .keyboard-help { margin-top: 12px; font-size: 11px; color: var(--muted); }
+  .keyboard-help kbd { background: #eee; padding: 1px 5px; border-radius: 3px; border: 1px solid #ccc; font-family: monospace; }
+
+  .done { max-width: 500px; margin: 80px auto; text-align: center; padding: 40px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); }
+  .done h2 { color: var(--success); margin-bottom: 12px; }
+</style>
+</head>
+<body x-data="annotationApp()" @keydown.window="handleKeydown($event)">
+
+  <!-- Header -->
+  <div class="header" x-show="state !== 'setup'">
+    <h1>DebateFlow Annotation</h1>
+    <span class="progress" x-show="state === 'annotating'" x-text="`Debate ${currentIndex + 1} of ${debates.length}`"></span>
+    <span class="annotator" x-text="`Annotator: ${annotatorId}`"></span>
+  </div>
+
+  <!-- Setup Screen -->
+  <div class="setup" x-show="state === 'setup'">
+    <h2>DebateFlow Annotation Tool</h2>
+    <p style="color: var(--muted); margin-bottom: 20px; font-size: 14px;">Load debate JSON files for blind annotation.</p>
+
+    <div style="margin-bottom: 16px;">
+      <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px;">Annotator ID</label>
+      <input type="text" x-model="annotatorId" placeholder="e.g. SP" @keydown.enter="$refs.filePicker.click()">
+    </div>
+
+    <div class="drop-zone"
+         :class="{ dragover: isDragging }"
+         @click="$refs.filePicker.click()"
+         @dragover.prevent="isDragging = true"
+         @dragleave.prevent="isDragging = false"
+         @drop.prevent="handleDrop($event)">
+      <p>Drop debate JSON files here or click to browse</p>
+      <p x-show="debates.length > 0" style="color: var(--success); margin-top: 8px;" x-text="`${debates.length} debate(s) loaded`"></p>
+    </div>
+    <input type="file" x-ref="filePicker" multiple accept=".json" style="display:none" @change="handleFiles($event)">
+
+    <button :disabled="!annotatorId.trim() || debates.length === 0" @click="startAnnotating()">
+      Start Annotating
+    </button>
+  </div>
+
+  <!-- Annotation Screen -->
+  <template x-if="state === 'annotating'">
+    <div class="main">
+      <!-- Left: Transcript -->
+      <div class="transcript">
+        <div class="resolution" x-text="currentDebate().metadata.resolution"></div>
+        <template x-for="turn in currentDebate().turns" :key="turn.role">
+          <div class="turn">
+            <div class="turn-header" :class="turn.speaker">
+              <span x-text="turnLabel(turn)"></span>
+            </div>
+            <div class="turn-text" x-text="turn.text"></div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Right: Scoring -->
+      <div class="scoring">
+        <h3>Scoring</h3>
+
+        <!-- Winner -->
+        <div class="winner-section">
+          <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px;">Overall Winner</div>
+          <label><input type="radio" value="aff" x-model="form.winner"> Affirmative</label>
+          <label><input type="radio" value="neg" x-model="form.winner"> Negative</label>
+        </div>
+
+        <!-- Dimensions -->
+        <template x-for="(dim, di) in dimensions" :key="dim.key">
+          <div class="dim-section">
+            <div class="dim-title">
+              <span x-text="dim.label"></span>
+            </div>
+            <div class="dim-def" x-text="dim.definition"></div>
+            <div class="score-row">
+              <span class="side-label aff">AFF</span>
+              <template x-for="v in [1,2,3]" :key="'aff'+di+v">
+                <button class="score-btn"
+                        :class="{ selected: form.scores[dim.key]?.aff === v, incomplete: showIncomplete && !form.scores[dim.key]?.aff }"
+                        @click="setScore(dim.key, 'aff', v)"
+                        x-text="v"></button>
+              </template>
+            </div>
+            <div class="score-row">
+              <span class="side-label neg">NEG</span>
+              <template x-for="v in [1,2,3]" :key="'neg'+di+v">
+                <button class="score-btn"
+                        :class="{ selected: form.scores[dim.key]?.neg === v, incomplete: showIncomplete && !form.scores[dim.key]?.neg }"
+                        @click="setScore(dim.key, 'neg', v)"
+                        x-text="v"></button>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- Justification -->
+        <div class="justification">
+          <label>Winner Justification</label>
+          <textarea x-model="form.justification" placeholder="Why did this side win?"></textarea>
+        </div>
+
+        <!-- Save -->
+        <button class="save-btn" :disabled="!isComplete()" @click="saveAndNext()">
+          <span x-text="currentIndex < debates.length - 1 ? 'Save & Next' : 'Save & Finish'"></span>
+        </button>
+
+        <div class="keyboard-help">
+          <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> score focused dimension &middot;
+          <kbd>Tab</kbd> next field &middot;
+          <kbd>Ctrl+Enter</kbd> save
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Done Screen -->
+  <div class="done" x-show="state === 'done'">
+    <h2>Annotation Complete</h2>
+    <p x-text="`You annotated ${debates.length} debate(s). All files have been downloaded.`"></p>
+    <button style="margin-top: 16px; background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer;" @click="reset()">Start New Session</button>
+  </div>
+
+<script>
+function annotationApp() {
+  return {
+    state: 'setup',
+    annotatorId: '',
+    debates: [],
+    currentIndex: 0,
+    isDragging: false,
+    showIncomplete: false,
+    activeDimIndex: 0,
+    activeSide: 'aff',
+
+    dimensions: [
+      { key: 'clash_engagement', label: 'Clash Engagement', definition: 'Did each side address the opponent\'s arguments or talk past them?' },
+      { key: 'burden_fulfillment', label: 'Burden Fulfillment', definition: 'Did each side meet its burden of proof?' },
+      { key: 'rebuttal_quality', label: 'Rebuttal Quality', definition: 'Specificity and depth of refutations — targeting weak premises vs. asserting disagreement.' },
+      { key: 'argument_extension', label: 'Argument Extension', definition: 'Did arguments develop across turns, or merely repeat the opening?' },
+      { key: 'strategic_adaptation', label: 'Strategic Adaptation', definition: 'Did speakers adjust their approach based on the opponent\'s actual moves?' },
+    ],
+
+    form: {
+      winner: null,
+      scores: {},
+      justification: '',
+    },
+
+    init() {
+      this.resetForm();
+    },
+
+    resetForm() {
+      this.form = {
+        winner: null,
+        scores: {},
+        justification: '',
+      };
+      this.dimensions.forEach(d => {
+        this.form.scores[d.key] = { aff: null, neg: null };
+      });
+      this.showIncomplete = false;
+      this.activeDimIndex = 0;
+      this.activeSide = 'aff';
+    },
+
+    handleFiles(event) {
+      this.loadFiles(Array.from(event.target.files));
+    },
+
+    handleDrop(event) {
+      this.isDragging = false;
+      const files = Array.from(event.dataTransfer.files).filter(f => f.name.endsWith('.json'));
+      this.loadFiles(files);
+    },
+
+    async loadFiles(files) {
+      for (const file of files) {
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          if (data.metadata && data.turns) {
+            this.debates.push(data);
+          }
+        } catch (e) {
+          console.warn(`Skipped ${file.name}: ${e.message}`);
+        }
+      }
+    },
+
+    startAnnotating() {
+      if (!this.annotatorId.trim() || this.debates.length === 0) return;
+      this.currentIndex = 0;
+      this.resetForm();
+      this.state = 'annotating';
+    },
+
+    currentDebate() {
+      return this.debates[this.currentIndex] || { metadata: { resolution: '' }, turns: [] };
+    },
+
+    turnLabel(turn) {
+      const sideLabel = turn.speaker === 'aff' ? 'Affirmative' : 'Negative';
+      const roleLabels = { opening: 'Opening', response: 'Response', rebuttal: 'Rebuttal', closing: 'Closing' };
+      return `${sideLabel} — ${roleLabels[turn.role] || turn.role}`;
+    },
+
+    setScore(dimKey, side, value) {
+      this.form.scores[dimKey][side] = value;
+    },
+
+    isComplete() {
+      if (!this.form.winner) return false;
+      if (!this.form.justification.trim()) return false;
+      for (const dim of this.dimensions) {
+        const s = this.form.scores[dim.key];
+        if (!s || !s.aff || !s.neg) return false;
+      }
+      return true;
+    },
+
+    saveAndNext() {
+      if (!this.isComplete()) {
+        this.showIncomplete = true;
+        return;
+      }
+
+      const debate = this.currentDebate();
+      const annotation = {
+        debate_id: debate.metadata.debate_id,
+        annotator_id: this.annotatorId.trim(),
+        winner: this.form.winner,
+        winner_justification: this.form.justification.trim(),
+        dimension_scores: this.dimensions.map(d => ({
+          dimension: d.key,
+          aff_score: this.form.scores[d.key].aff,
+          neg_score: this.form.scores[d.key].neg,
+        })),
+        annotated_at: new Date().toISOString(),
+        annotation_version: '0.1.0',
+      };
+
+      // Download annotation JSON
+      const blob = new Blob([JSON.stringify(annotation, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${annotation.debate_id}_${annotation.annotator_id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      // Move to next or finish
+      if (this.currentIndex < this.debates.length - 1) {
+        this.currentIndex++;
+        this.resetForm();
+        // Scroll transcript to top
+        const transcript = document.querySelector('.transcript');
+        if (transcript) transcript.scrollTop = 0;
+      } else {
+        this.state = 'done';
+      }
+    },
+
+    handleKeydown(event) {
+      if (this.state !== 'annotating') return;
+
+      // Ctrl+Enter to save
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        this.saveAndNext();
+        return;
+      }
+
+      // Don't intercept keys when typing in textarea
+      if (event.target.tagName === 'TEXTAREA' || event.target.tagName === 'INPUT') return;
+
+      // 1/2/3 to set score for active dimension
+      if (['1', '2', '3'].includes(event.key)) {
+        event.preventDefault();
+        const dim = this.dimensions[this.activeDimIndex];
+        if (dim) {
+          this.setScore(dim.key, this.activeSide, parseInt(event.key));
+          // Auto-advance: aff -> neg -> next dimension aff
+          if (this.activeSide === 'aff') {
+            this.activeSide = 'neg';
+          } else {
+            this.activeSide = 'aff';
+            if (this.activeDimIndex < this.dimensions.length - 1) {
+              this.activeDimIndex++;
+            }
+          }
+        }
+        return;
+      }
+
+      // Arrow keys to navigate dimensions
+      if (event.key === 'ArrowUp' && this.activeDimIndex > 0) {
+        event.preventDefault();
+        this.activeDimIndex--;
+      }
+      if (event.key === 'ArrowDown' && this.activeDimIndex < this.dimensions.length - 1) {
+        event.preventDefault();
+        this.activeDimIndex++;
+      }
+      // a/n to pick winner
+      if (event.key === 'a') { this.form.winner = 'aff'; }
+      if (event.key === 'n') { this.form.winner = 'neg'; }
+    },
+
+    reset() {
+      this.state = 'setup';
+      this.debates = [];
+      this.currentIndex = 0;
+      this.resetForm();
+    },
+  };
+}
+</script>
+</body>
+</html>
