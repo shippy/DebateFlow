@@ -1,0 +1,40 @@
+resolutions:
+  # Policy (4)
+  - text: "This house would ban private car ownership in city centers"
+    category: policy
+  - text: "This house would implement universal basic income"
+    category: policy
+  - text: "This house would abolish standardized testing in schools"
+    category: policy
+  - text: "This house would make voting compulsory"
+    category: policy
+
+  # Values (4)
+  - text: "This house believes cancel culture does more harm than good"
+    category: values
+  - text: "This house would prioritize economic growth over environmental protection"
+    category: values
+  - text: "This house believes the right to privacy outweighs national security concerns"
+    category: values
+  - text: "This house believes that social media companies have a moral duty to censor misinformation"
+    category: values
+
+  # Empirical (4)
+  - text: "Social media has been net negative for democracy"
+    category: empirical
+  - text: "AI development should be paused until safety is better understood"
+    category: empirical
+  - text: "Remote work is more productive than in-office work for most knowledge workers"
+    category: empirical
+  - text: "The benefits of globalization have outweighed its costs for developing nations"
+    category: empirical
+
+defaults:
+  aff:
+    provider: anthropic
+    model_name: claude-sonnet-4-20250514
+    temperature: 0.7
+  neg:
+    provider: anthropic
+    model_name: claude-sonnet-4-20250514
+    temperature: 0.7

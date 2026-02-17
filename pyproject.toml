@@ -1,0 +1,29 @@
+[project]
+name = "debateflow"
+version = "0.1.0"
+description = "Synthetic debate generation pipeline for multi-turn debate judgment benchmarks"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.0.0",
+    "pydantic-ai>=0.1.0",
+    "typer>=0.12.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0.0",
+    "datasets>=3.0.0",
+    "huggingface_hub>=0.25.0",
+]
+
+[project.scripts]
+debateflow = "cli:app"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.1",
+    "pytest>=9.0.2",
+    "ruff>=0.15.1",
+    "types-pyyaml>=6.0.12.20250915",
+]
