@@ -88,13 +88,21 @@ def stats() -> None:
 
 @app.command()
 def publish(
-    repo: Annotated[str, typer.Option(help="HuggingFace repo ID (e.g. user/debateflow)")],
+    repo: Annotated[Optional[str], typer.Option(help="HuggingFace repo ID (e.g. user/debateflow)")] = None,
     dry_run: Annotated[bool, typer.Option("--dry-run", help="Generate card + JSONL without pushing")] = False,
+    public: Annotated[bool, typer.Option("--public", help="Make the dataset public (default: private)")] = False,
 ) -> None:
     """Compile dataset and publish to HuggingFace Hub."""
+    import os
+
     from publish import publish as do_publish
 
-    do_publish(repo_id=repo, input_dir=OUTPUT_DIR, dry_run=dry_run)
+    repo_id = repo or os.environ.get("DF_HF_REPO")
+    if not repo_id:
+        typer.echo("Error: provide --repo or set DF_HF_REPO in .env", err=True)
+        raise typer.Exit(1)
+
+    do_publish(repo_id=repo_id, input_dir=OUTPUT_DIR, dry_run=dry_run, private=not public)
 
 
 if __name__ == "__main__":

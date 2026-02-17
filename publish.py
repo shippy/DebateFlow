@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from rich.console import Console
@@ -14,7 +15,15 @@ console = Console()
 JSONL_PATH = Path("output/debateflow.jsonl")
 
 
-def publish(repo_id: str, input_dir: Path, dry_run: bool = False) -> None:
+def _get_hf_token() -> str:
+    """Read HuggingFace token from DF_HF_TOKEN env var."""
+    token = os.environ.get("DF_HF_TOKEN")
+    if not token:
+        raise ValueError("Set DF_HF_TOKEN in your .env file or environment")
+    return token
+
+
+def publish(repo_id: str, input_dir: Path, dry_run: bool = False, private: bool = True) -> None:
     """Compile debates to JSONL, generate dataset card, and push to HuggingFace Hub.
 
     Args:
@@ -47,13 +56,14 @@ def publish(repo_id: str, input_dir: Path, dry_run: bool = False) -> None:
     from datasets import Dataset
     from huggingface_hub import HfApi
 
+    token = _get_hf_token()
     console.print(f"\n[bold]Pushing to {repo_id}...[/bold]")
 
     dataset = Dataset.from_json(str(JSONL_PATH))
-    dataset.push_to_hub(repo_id, private=False)
+    dataset.push_to_hub(repo_id, private=private, token=token)
 
     # Upload the dataset card
-    api = HfApi()
+    api = HfApi(token=token)
     api.upload_file(
         path_or_fileobj=str(card_path),
         path_in_repo="README.md",
