@@ -32,9 +32,9 @@ resolutions:
 defaults:
   aff:
     provider: anthropic
-    model_name: claude-sonnet-4-20250514
+    model_name: claude-opus-4-6
     temperature: 0.7
   neg:
     provider: anthropic
-    model_name: claude-sonnet-4-20250514
+    model_name: claude-opus-4-6
     temperature: 0.7
