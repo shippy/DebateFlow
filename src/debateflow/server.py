@@ -17,7 +17,6 @@ from .models import Annotation
 
 from .voice import (
     DEFAULT_VOICE_POOL,
-    get_client,
     pick_voice_pair,
     synthesize_turn,
 )
@@ -128,14 +127,12 @@ async def tts_endpoint(request: Request) -> Response:
     if cache_path.exists():
         return JSONResponse({"url": url, "cached": True})
 
-    # Synthesize via ElevenLabs
+    # Synthesize via TTS (ElevenLabs preferred, OpenAI fallback)
     aff_voice, neg_voice = pick_voice_pair(debate_id)
     voice = aff_voice if speaker == "aff" else neg_voice
-    voice_id: str = voice["voice_id"]
 
     try:
-        client = get_client()
-        audio_bytes = synthesize_turn(client, text, voice_id)
+        audio_bytes = synthesize_turn(text, voice)
     except Exception as e:
         return JSONResponse({"error": f"TTS failed: {e}"}, status_code=502)
 
