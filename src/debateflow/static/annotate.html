@@ -464,7 +464,9 @@ function annotationApp() {
       this.serverLoading = true;
       this.serverStatus = '';
       try {
-        const res = await fetch('/api/debates');
+        const ann = this.annotatorId.trim();
+        const url = ann ? `/api/debates?annotator=${encodeURIComponent(ann)}` : '/api/debates';
+        const res = await fetch(url);
         if (!res.ok) throw new Error('Server not available');
         const files = await res.json();
         if (files.length === 0) {
@@ -488,9 +490,11 @@ function annotationApp() {
             console.warn(`Skipped ${name}: ${e.message}`);
           }
         }
-        this.serverStatus = `Loaded ${loaded} debate(s) from server.`;
+        this.serverStatus = ann
+          ? `Loaded ${loaded} unannotated debate(s) from server.`
+          : `Loaded ${loaded} debate(s) from server.`;
       } catch (e) {
-        this.serverStatus = 'Could not reach server. Start it with: uv run python cli.py serve';
+        this.serverStatus = 'Could not reach server. Start it with: uv run debateflow serve';
       }
       this.serverLoading = false;
     },

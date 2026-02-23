@@ -30,11 +30,30 @@ async def homepage(request: Request) -> Response:
 
 
 async def list_debates(request: Request) -> Response:
-    """Return list of debate JSON filenames available on disk."""
+    """Return list of debate JSON filenames available on disk.
+
+    When ``?annotator=X`` is provided, debates already annotated by that
+    annotator (i.e. a matching file in ``output/annotations/``) are excluded.
+    """
     debates_dir = OUTPUT_DIR / "debates"
     if not debates_dir.exists():
         return JSONResponse([])
-    files = sorted(p.name for p in debates_dir.glob("*.json"))
+
+    annotator = request.query_params.get("annotator", "").strip()
+    if annotator:
+        annotations_dir = OUTPUT_DIR / "annotations"
+        annotated_ids: set[str] = set()
+        if annotations_dir.exists():
+            for p in annotations_dir.glob(f"*_{annotator}.json"):
+                annotated_ids.add(p.stem.removesuffix(f"_{annotator}"))
+        files = sorted(
+            p.name
+            for p in debates_dir.glob("*.json")
+            if p.stem not in annotated_ids
+        )
+    else:
+        files = sorted(p.name for p in debates_dir.glob("*.json"))
+
     return JSONResponse(files)
 
 
