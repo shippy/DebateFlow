@@ -26,6 +26,7 @@ class WeaknessType(str, Enum):
     ARGUMENT_DROPPING = "argument_dropping"
     LOGICAL_GAPS = "logical_gaps"
     BURDEN_OF_PROOF = "burden_of_proof"
+    SIDE_CONCESSION = "side_concession"
 
 
 class Side(str, Enum):

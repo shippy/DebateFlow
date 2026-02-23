@@ -81,21 +81,45 @@ Did the NEGATIVE address the opponent's arguments or talk past them?
 [Weak ❌]  [OK ➖]  [Strong ✅]
 ```
 
-Then:
-- 2/5 — Burden Fulfillment (AFF, NEG)
+Then (example for an empirical debate):
+
+```
+📊 2/5 — Burden Fulfillment
+
+Did each side adequately support their core claims and meet their argumentative obligations?
+
+For this empirical debate:
+Did AFF provide sufficient evidence that the claim is true?
+
+[Weak ❌]  [OK ➖]  [Strong ✅]
+```
+
+Continuing:
 - 3/5 — Rebuttal Quality (AFF, NEG)
 - 4/5 — Argument Extension (AFF, NEG)
 - 5/5 — Strategic Adaptation (AFF, NEG)
 
 **Dimension definitions (sent with each message):**
 
+> **Note:** Burden Fulfillment prompts vary by debate category (policy, values, empirical). All other dimensions use the same prompts regardless of category.
+
 | # | Dimension | AFF prompt | NEG prompt |
 |---|-----------|-----------|-----------|
 | 1 | Clash Engagement | Did the AFF address the opponent's arguments or talk past them? | Did the NEG address the opponent's arguments or talk past them? |
-| 2 | Burden Fulfillment | Did the AFF demonstrate the need for change? | Did the NEG defend the status quo or show harm from the proposal? |
+| 2 | Burden Fulfillment | *(category-specific — see below)* | *(category-specific — see below)* |
 | 3 | Rebuttal Quality | How specific and deep were the AFF's refutations? | How specific and deep were the NEG's refutations? |
 | 4 | Argument Extension | Did the AFF's arguments develop across turns or just repeat? | Did the NEG's arguments develop across turns or just repeat? |
 | 5 | Strategic Adaptation | Did the AFF adjust their approach based on the NEG's moves? | Did the NEG adjust their approach based on the AFF's moves? |
+
+**Burden Fulfillment — category-specific prompts:**
+
+Base definition: *"Did each side adequately support their core claims and meet their argumentative obligations?"*
+
+| Category | AFF prompt | NEG prompt |
+|----------|-----------|-----------|
+| policy | Did AFF demonstrate a need for change and show the proposal solves it? | Did NEG defend the status quo or show the proposal causes more harm? |
+| values | Did AFF show that the value or principle they champion should take precedence? | Did NEG show the competing value takes priority or that AFF's framing is flawed? |
+| empirical | Did AFF provide sufficient evidence that the claim is true? | Did NEG provide sufficient evidence that the claim is false or unsupported? |
 
 ### Message 13: Winner
 

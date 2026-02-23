@@ -69,7 +69,7 @@ def generate_single_debate(
             {"speaker": t.speaker.value, "role": t.role, "text": t.text}
             for t in turns
         ]
-        user_prompt = build_user_prompt(resolution, role, previous)
+        user_prompt = build_user_prompt(resolution, role, previous, side=speaker)
 
         agent = make_agent(config, system_prompt)
         result = agent.run_sync(user_prompt)
