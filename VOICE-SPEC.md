@@ -31,18 +31,31 @@ Audio is synthesized **on demand** via the annotation server (`/api/tts`), cache
 - **Voice pairings rotate across debates** — pool of 6 voices, deterministic pairing via hash of `debate_id`
 - Voice pairing recorded in response metadata
 
-### Provider: ElevenLabs
+### Providers: ElevenLabs (preferred) + OpenAI (fallback)
 
-- Model: `eleven_multilingual_v2`
-- Output: `mp3_22050_32`
-- API key via `DF_ELEVENLABS_API_KEY` env var
+Two TTS providers are supported. ElevenLabs is used when an API key is available; OpenAI serves as a cost-effective fallback.
 
-**Current voice pool (6 voices):**
-- George, Liam, Charlotte, Lily, Will, Laura
-- All distinct ElevenLabs pre-made voices
-- 15 possible pairings from `combinations(6, 2)`
+#### ElevenLabs (primary)
+- High-quality, natural-sounding speech
+- Model: `eleven_multilingual_v2`, output: `mp3_22050_32`
+- Voice selection via `voice_id`
+- **Voice pool:** George, Liam, Charlotte, Lily, Will, Laura (6 voices, 15 pairings)
+- **Cost:** ~$0.03–0.10/min — expensive on lower-tier subscriptions (~20% of starter credits per debate)
+- **Env vars:** `DF_ELEVENLABS_API_KEY` or `ELEVENLABS_API_KEY`
 
-**Cost estimate:** ~$0.03–0.10/min. At ~4 min per debate, a 100-debate set costs $3–10.
+#### OpenAI tts-1-hd (fallback)
+- Good quality, slightly less natural than ElevenLabs but much cheaper
+- **Voice pool:** Alloy, Echo, Fable, Onyx, Nova, Shimmer (6 voices, 15 pairings)
+- **Cost:** ~$0.12 per debate (~$3.48 for 29 debates) — well-suited for bulk annotation
+- **Env var:** `OPENAI_API_KEY`
+
+#### Fallback behavior
+- If ElevenLabs key is set → use ElevenLabs
+- If ElevenLabs synthesis fails at runtime → fall back to OpenAI (if key available)
+- If only OpenAI key is set → use OpenAI directly
+- If neither key is set → error
+
+When falling back from ElevenLabs to OpenAI mid-synthesis (e.g. rate limit), voice names are mapped by index position (George→Alloy, Liam→Echo, etc.).
 
 ---
 
