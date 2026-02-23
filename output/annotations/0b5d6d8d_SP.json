@@ -1,0 +1,17 @@
+{
+  "debate_id": "0b5d6d8d",
+  "annotator_id": "SP",
+  "source": "telegram",
+  "winner": "neg",
+  "winner_justification": "Stronger engagement countering the evidence + feasibility",
+  "dimension_scores": [
+    {"dimension": "clash_engagement", "aff_score": 3, "neg_score": 3},
+    {"dimension": "burden_fulfillment", "aff_score": 2, "neg_score": 3},
+    {"dimension": "rebuttal_quality", "aff_score": 3, "neg_score": 3},
+    {"dimension": "argument_extension", "aff_score": 3, "neg_score": 3},
+    {"dimension": "strategic_adaptation", "aff_score": 2, "neg_score": 3}
+  ],
+  "annotated_at": "2026-02-23T14:05:00Z",
+  "annotation_version": "0.1.0",
+  "audio_listened": true
+}
