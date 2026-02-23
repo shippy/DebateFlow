@@ -1,0 +1,37 @@
+{
+  "debate_id": "0003dc00",
+  "annotator_id": "SP",
+  "source": "telegram",
+  "winner": "aff",
+  "winner_justification": "Better evidence amidst engagement that was just as clear from both sides.",
+  "dimension_scores": [
+    {
+      "dimension": "clash_engagement",
+      "aff_score": 3,
+      "neg_score": 3
+    },
+    {
+      "dimension": "burden_fulfillment",
+      "aff_score": 1,
+      "neg_score": 2
+    },
+    {
+      "dimension": "rebuttal_quality",
+      "aff_score": 3,
+      "neg_score": 2
+    },
+    {
+      "dimension": "argument_extension",
+      "aff_score": 2,
+      "neg_score": 2
+    },
+    {
+      "dimension": "strategic_adaptation",
+      "aff_score": 2,
+      "neg_score": 1
+    }
+  ],
+  "annotated_at": "2026-02-23T13:28:56.617543Z",
+  "annotation_version": "0.1.0",
+  "audio_listened": true
+}
