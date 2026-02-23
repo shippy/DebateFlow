@@ -118,7 +118,10 @@
   <div class="header" x-show="state !== 'setup'">
     <h1>DebateFlow Annotation</h1>
     <span class="progress" x-show="state === 'annotating'" x-text="`Debate ${currentIndex + 1} of ${debates.length}`"></span>
-    <span class="annotator" x-text="`Annotator: ${annotatorId}`"></span>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <a href="/review" style="font-size: 13px; color: var(--primary); text-decoration: none;">Review</a>
+      <span class="annotator" x-text="`Annotator: ${annotatorId}`"></span>
+    </div>
   </div>
 
   <!-- Setup Screen -->
