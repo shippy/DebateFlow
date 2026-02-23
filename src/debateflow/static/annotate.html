@@ -150,7 +150,7 @@
     </button>
 
     <div class="server-load">
-      <button @click="loadFromServer()" :disabled="serverLoading">
+      <button @click="loadFromServer()" :disabled="serverLoading || !annotatorId.trim()">
         <span x-text="serverLoading ? 'Loading...' : 'Load from Server'"></span>
       </button>
       <div class="status" x-show="serverStatus" x-text="serverStatus"></div>
