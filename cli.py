@@ -149,6 +149,17 @@ def annotate_status() -> None:
 
 
 @app.command()
+def serve(
+    port: Annotated[int, typer.Option(help="Port to listen on")] = 5733,
+) -> None:
+    """Start the annotation server with on-demand TTS."""
+    import uvicorn
+
+    typer.echo(f"Starting DebateFlow server on http://localhost:{port}")
+    uvicorn.run("server:app", host="0.0.0.0", port=port, log_level="info")
+
+
+@app.command()
 def annotate_agreement() -> None:
     """Compute inter-annotator agreement (requires 2+ annotators on same debates)."""
     from agreement import compute_agreement, load_annotations

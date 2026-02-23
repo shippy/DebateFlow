@@ -83,6 +83,31 @@
   .keyboard-help { margin-top: 12px; font-size: 11px; color: var(--muted); }
   .keyboard-help kbd { background: #eee; padding: 1px 5px; border-radius: 3px; border: 1px solid #ccc; font-family: monospace; }
 
+  .turn-playing { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+  .turn-loading { border-color: var(--warn); box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2); animation: pulse-border 1.5s ease-in-out infinite; }
+  @keyframes pulse-border { 0%, 100% { box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.15); } 50% { box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.3); } }
+
+  .turn-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .play-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid var(--border); background: var(--surface); border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text); transition: all 0.15s; }
+  .play-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .play-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .play-btn.loading { color: var(--muted); }
+
+  .audio-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 10px 16px; background: var(--surface); border-radius: 6px; border: 1px solid var(--border); }
+  .audio-controls .play-all-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border: 1px solid var(--primary); background: var(--surface); border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--primary); transition: all 0.15s; }
+  .audio-controls .play-all-btn:hover { background: var(--primary); color: white; }
+  .audio-controls .play-all-btn.active { background: var(--primary); color: white; }
+  .audio-controls .play-all-btn.loading { background: var(--warn); color: var(--text); border-color: var(--warn); animation: pulse-bg 1.5s ease-in-out infinite; }
+  @keyframes pulse-bg { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+  .audio-controls .audio-status { font-size: 12px; color: var(--muted); font-style: italic; }
+  .audio-controls select { padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; background: var(--surface); }
+  .audio-controls .speed-label { font-size: 12px; color: var(--muted); }
+
+  .server-load { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .server-load button { background: var(--surface); color: var(--primary); border: 1px solid var(--primary); }
+  .server-load button:hover { background: var(--primary); color: white; }
+  .server-load .status { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
   .done { max-width: 500px; margin: 80px auto; text-align: center; padding: 40px; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); }
   .done h2 { color: var(--success); margin-bottom: 12px; }
 </style>
@@ -120,6 +145,13 @@
     <button :disabled="!annotatorId.trim() || debates.length === 0" @click="startAnnotating()">
       Start Annotating
     </button>
+
+    <div class="server-load">
+      <button @click="loadFromServer()" :disabled="serverLoading">
+        <span x-text="serverLoading ? 'Loading...' : 'Load from Server'"></span>
+      </button>
+      <div class="status" x-show="serverStatus" x-text="serverStatus"></div>
+    </div>
   </div>
 
   <!-- Annotation Screen -->
@@ -128,12 +160,32 @@
       <!-- Left: Transcript -->
       <div class="transcript">
         <div class="resolution" x-text="currentDebate().metadata.resolution"></div>
-        <template x-for="turn in currentDebate().turns" :key="turn.role">
-          <div class="turn">
+
+        <!-- Audio Controls -->
+        <div class="audio-controls">
+          <button class="play-all-btn" :class="{ active: playingAll && playingTurnIndex >= 0, loading: playingAll && loadingTurnIndex >= 0 }" @click="togglePlayAll()">
+            <span x-text="playAllLabel()"></span>
+          </button>
+          <span class="audio-status" x-show="playingTurnIndex >= 0 || loadingTurnIndex >= 0" x-text="audioStatusText()"></span>
+          <span class="speed-label">Speed:</span>
+          <select x-model="playbackSpeed" @change="updatePlaybackSpeed()">
+            <option value="1">1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+          </select>
+        </div>
+
+        <template x-for="(turn, ti) in currentDebate().turns" :key="turn.role">
+          <div class="turn" :class="{ 'turn-playing': playingTurnIndex === ti, 'turn-loading': loadingTurnIndex === ti }">
             <div class="turn-header" :class="turn.speaker">
               <span x-text="turnLabel(turn)"></span>
             </div>
             <div class="turn-text" x-html="renderMarkdown(turn.text)"></div>
+            <div class="turn-actions">
+              <button class="play-btn" :class="{ loading: loadingTurnIndex === ti }" :disabled="loadingTurnIndex === ti" @click="toggleTurn(ti)">
+                <span x-text="playingTurnIndex === ti ? 'Pause' : (loadingTurnIndex === ti ? 'Loading...' : 'Play')"></span>
+              </button>
+            </div>
           </div>
         </template>
       </div>
@@ -215,6 +267,17 @@ function annotationApp() {
     showIncomplete: false,
     activeDimIndex: 0,
     activeSide: 'aff',
+
+    // Server loading
+    serverLoading: false,
+    serverStatus: '',
+
+    // Audio state
+    audio: null,
+    playingTurnIndex: -1,
+    loadingTurnIndex: -1,
+    playingAll: false,
+    playbackSpeed: '1',
 
     dimensions: [
       { key: 'clash_engagement', label: 'Clash Engagement', definition: 'Did each side address the opponent\'s arguments or talk past them?' },
@@ -338,6 +401,7 @@ function annotationApp() {
       URL.revokeObjectURL(url);
 
       // Move to next or finish
+      this.stopAudio();
       if (this.currentIndex < this.debates.length - 1) {
         this.currentIndex++;
         this.resetForm();
@@ -395,7 +459,160 @@ function annotationApp() {
       if (event.key === 'n') { this.form.winner = 'neg'; }
     },
 
+    // --- Server loading ---
+    async loadFromServer() {
+      this.serverLoading = true;
+      this.serverStatus = '';
+      try {
+        const res = await fetch('/api/debates');
+        if (!res.ok) throw new Error('Server not available');
+        const files = await res.json();
+        if (files.length === 0) {
+          this.serverStatus = 'No debates found on server.';
+          this.serverLoading = false;
+          return;
+        }
+        let loaded = 0;
+        for (const name of files) {
+          try {
+            const r = await fetch(`/output/debates/${name}`);
+            const data = await r.json();
+            if (data.metadata && data.turns) {
+              // Avoid duplicates
+              if (!this.debates.some(d => d.metadata.debate_id === data.metadata.debate_id)) {
+                this.debates.push(data);
+                loaded++;
+              }
+            }
+          } catch (e) {
+            console.warn(`Skipped ${name}: ${e.message}`);
+          }
+        }
+        this.serverStatus = `Loaded ${loaded} debate(s) from server.`;
+      } catch (e) {
+        this.serverStatus = 'Could not reach server. Start it with: uv run python cli.py serve';
+      }
+      this.serverLoading = false;
+    },
+
+    // --- Audio playback ---
+    stopAudio() {
+      if (this.audio) {
+        this.audio.pause();
+        this.audio = null;
+      }
+      this.playingTurnIndex = -1;
+      this.loadingTurnIndex = -1;
+      this.playingAll = false;
+    },
+
+    updatePlaybackSpeed() {
+      if (this.audio) {
+        this.audio.playbackRate = parseFloat(this.playbackSpeed);
+      }
+    },
+
+    async playTurn(turnIndex) {
+      const debate = this.currentDebate();
+      const turn = debate.turns[turnIndex];
+      if (!turn) return;
+
+      this.loadingTurnIndex = turnIndex;
+
+      try {
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            debate_id: debate.metadata.debate_id,
+            turn_index: turnIndex,
+            speaker: turn.speaker,
+            text: turn.text,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: res.statusText }));
+          console.error('TTS error:', err);
+          this.loadingTurnIndex = -1;
+          this.playingAll = false;
+          return;
+        }
+
+        const data = await res.json();
+        this.loadingTurnIndex = -1;
+
+        // Create and play audio
+        this.audio = new Audio(data.url);
+        this.audio.playbackRate = parseFloat(this.playbackSpeed);
+        this.playingTurnIndex = turnIndex;
+
+        this.audio.addEventListener('ended', () => {
+          const wasPlayingAll = this.playingAll;
+          this.playingTurnIndex = -1;
+          this.audio = null;
+
+          // If playing all, advance to next turn
+          if (wasPlayingAll) {
+            const nextIndex = turnIndex + 1;
+            if (nextIndex < debate.turns.length) {
+              this.playTurn(nextIndex);
+            } else {
+              this.playingAll = false;
+            }
+          }
+        });
+
+        await this.audio.play();
+      } catch (e) {
+        console.error('Audio playback failed:', e);
+        this.loadingTurnIndex = -1;
+        this.playingTurnIndex = -1;
+        this.playingAll = false;
+      }
+    },
+
+    toggleTurn(turnIndex) {
+      // If this turn is already playing, pause it
+      if (this.playingTurnIndex === turnIndex && this.audio) {
+        this.stopAudio();
+        return;
+      }
+      // Stop anything currently playing
+      this.stopAudio();
+      this.playTurn(turnIndex);
+    },
+
+    playAllLabel() {
+      if (!this.playingAll) return 'Play All';
+      if (this.loadingTurnIndex >= 0) return 'Loading...';
+      return 'Stop All';
+    },
+
+    audioStatusText() {
+      const debate = this.currentDebate();
+      const idx = this.loadingTurnIndex >= 0 ? this.loadingTurnIndex : this.playingTurnIndex;
+      if (idx < 0 || !debate.turns[idx]) return '';
+      const turn = debate.turns[idx];
+      const side = turn.speaker === 'aff' ? 'Aff' : 'Neg';
+      const roles = { opening: 'Opening', response: 'Response', rebuttal: 'Rebuttal', closing: 'Closing' };
+      const role = roles[turn.role] || turn.role;
+      if (this.loadingTurnIndex >= 0) return `Synthesizing ${side} ${role}...`;
+      return `Playing ${side} ${role}`;
+    },
+
+    togglePlayAll() {
+      if (this.playingAll) {
+        this.stopAudio();
+        return;
+      }
+      this.stopAudio();
+      this.playingAll = true;
+      this.playTurn(0);
+    },
+
     reset() {
+      this.stopAudio();
       this.state = 'setup';
       this.debates = [];
       this.currentIndex = 0;
