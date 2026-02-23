@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from compile import compute_stats
-from models import Debate
+from .compile import compute_stats
+from .models import Debate
 
 
 def _size_category(n: int) -> str:

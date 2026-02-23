@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from models import Side, WeaknessType
+from .models import Side, WeaknessType
 
 # ---------------------------------------------------------------------------
 # Base system prompts (one per side)

@@ -23,26 +23,31 @@ The last two dimensions are central to competitive debate judging but absent fro
 ## Project structure
 
 ```
-pyproject.toml          Project config and dependencies
-resolutions.yaml        12 seed resolutions (policy, values, empirical)
-models.py               Pydantic data models
-providers.py            LLM provider factory (Anthropic + OpenAI)
-prompts.py              System prompts and weakness injection templates
-generator.py            4-turn debate generation pipeline
-compile.py              JSONL compilation and statistics
-publish.py              HuggingFace Hub publication
-dataset_card.py         Dataset card template
-cli.py                  Typer CLI entry point
-server.py               Annotation server with on-demand TTS
-voice.py                ElevenLabs TTS wrapper
-annotate.html           Browser-based annotation tool
+pyproject.toml              Project config and dependencies
+resolutions.yaml            12 seed resolutions (policy, values, empirical)
+src/debateflow/
+    __init__.py              Package version
+    __main__.py              python -m debateflow support
+    models.py                Pydantic data models
+    providers.py             LLM provider factory (Anthropic + OpenAI)
+    prompts.py               System prompts and weakness injection templates
+    generator.py             4-turn debate generation pipeline
+    compile.py               JSONL compilation and statistics
+    publish.py               HuggingFace Hub publication
+    dataset_card.py          Dataset card template
+    cli.py                   Typer CLI entry point
+    server.py                Annotation server with on-demand TTS
+    voice.py                 ElevenLabs TTS wrapper
+    agreement.py             Inter-annotator agreement computation
+    static/
+        annotate.html        Browser-based annotation tool
 output/
-  debates/              Generated debate JSON files
-  annotations/          Human annotation JSON files
-  audio/                Cached TTS audio (MP3)
+    debates/                 Generated debate JSON files
+    annotations/             Human annotation JSON files
+    audio/                   Cached TTS audio (MP3)
 tests/
-  test_models.py
-  test_prompts.py
+    test_models.py
+    test_prompts.py
 ```
 
 ## Development setup
@@ -70,22 +75,22 @@ Not all keys are needed for every task. Generation requires the LLM provider key
 
 ```bash
 # Generate 10 debates with default models
-uv run python cli.py generate -n 10
+uv run debateflow generate -n 10
 
 # Use specific models per side
-uv run python cli.py generate -n 5 \
+uv run debateflow generate -n 5 \
     --aff-provider anthropic --aff-model claude-sonnet-4-20250514 \
     --neg-provider openai --neg-model gpt-4o
 
 # Filter by topic category or force a weakness type
-uv run python cli.py generate -n 5 --category values
-uv run python cli.py generate -n 3 --weakness argument_dropping
+uv run debateflow generate -n 5 --category values
+uv run debateflow generate -n 3 --weakness argument_dropping
 
 # View dataset statistics
-uv run python cli.py stats
+uv run debateflow stats
 
 # Compile individual JSONs into a single JSONL
-uv run python cli.py compile
+uv run debateflow compile
 ```
 
 ## Annotating debates
@@ -93,7 +98,7 @@ uv run python cli.py compile
 The annotation tool runs in the browser. Start the server:
 
 ```bash
-uv run python cli.py serve
+uv run debateflow serve
 ```
 
 Then open [http://localhost:5733](http://localhost:5733). The server:
@@ -111,20 +116,20 @@ Voice playback is optional -- annotation works without an ElevenLabs key, you ju
 
 ```bash
 # Check annotation progress
-uv run python cli.py annotate-status
+uv run debateflow annotate-status
 
 # Compute inter-annotator agreement (needs 2+ annotators on same debates)
-uv run python cli.py annotate-agreement
+uv run debateflow annotate-agreement
 ```
 
 ## Publishing
 
 ```bash
 # Dry run -- generates JSONL and dataset card locally
-uv run python cli.py publish --repo your-username/debateflow --dry-run
+uv run debateflow publish --repo your-username/debateflow --dry-run
 
 # Push to HuggingFace Hub
-uv run python cli.py publish --repo your-username/debateflow --public
+uv run debateflow publish --repo your-username/debateflow --public
 ```
 
 ## Tests

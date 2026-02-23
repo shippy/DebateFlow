@@ -13,19 +13,20 @@ from starlette.responses import FileResponse, JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 
-from voice import (
+from .voice import (
     DEFAULT_VOICE_POOL,
     get_client,
     pick_voice_pair,
     synthesize_turn,
 )
 
+_PACKAGE_DIR = Path(__file__).parent
 OUTPUT_DIR = Path("output")
 AUDIO_DIR = OUTPUT_DIR / "audio"
 
 
 async def homepage(request: Request) -> Response:
-    return FileResponse("annotate.html")
+    return FileResponse(_PACKAGE_DIR / "static" / "annotate.html")
 
 
 async def list_debates(request: Request) -> Response:

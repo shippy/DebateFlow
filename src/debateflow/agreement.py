@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
 
-from models import ANNOTATION_DIMENSIONS, Annotation
+from .models import ANNOTATION_DIMENSIONS, Annotation
 
 
 def load_annotations(annotations_dir: Path) -> list[Annotation]:

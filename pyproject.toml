@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "debateflow"
 version = "0.1.0"
@@ -13,13 +17,24 @@ dependencies = [
     "datasets>=3.0.0",
     "huggingface_hub>=0.25.0",
     "elevenlabs>=1.0.0",
+    "starlette>=0.40.0",
+    "uvicorn>=0.30.0",
 ]
 
 [project.scripts]
-debateflow = "cli:app"
+debateflow = "debateflow.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/debateflow"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+src = ["src"]
+
+[tool.mypy]
+mypy_path = "src"
 
 [dependency-groups]
 dev = [

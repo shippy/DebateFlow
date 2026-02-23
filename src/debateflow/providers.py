@@ -11,7 +11,7 @@ from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.settings import ModelSettings
 
-from models import ModelConfig
+from .models import ModelConfig
 
 # Env var names — prefixed with DF_ to avoid Claude Code picking up the keys
 API_KEY_ENV_VARS: dict[str, str] = {

@@ -1,7 +1,7 @@
 """Tests for prompt construction and weakness injection."""
 
-from models import Side, WeaknessType
-from prompts import (
+from debateflow.models import Side, WeaknessType
+from debateflow.prompts import (
     TURN_INSTRUCTIONS,
     WEAKNESS_TEMPLATES,
     build_system_prompt,

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from rich.console import Console
 
-from models import (
+from .models import (
     ConstraintInfo,
     Debate,
     DebateCategory,
@@ -18,8 +18,8 @@ from models import (
     TurnRole,
     WeaknessType,
 )
-from prompts import build_system_prompt, build_user_prompt
-from providers import make_agent
+from .prompts import build_system_prompt, build_user_prompt
+from .providers import make_agent
 
 console = Console()
 

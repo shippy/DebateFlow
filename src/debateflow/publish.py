@@ -7,8 +7,8 @@ from pathlib import Path
 
 from rich.console import Console
 
-from compile import compile_to_jsonl
-from dataset_card import generate_card, load_debates_from_jsonl
+from .compile import compile_to_jsonl
+from .dataset_card import generate_card, load_debates_from_jsonl
 
 console = Console()
 

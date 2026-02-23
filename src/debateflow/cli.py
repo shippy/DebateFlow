@@ -9,7 +9,7 @@ import typer
 import yaml
 from dotenv import load_dotenv
 
-from models import DebateCategory, ModelConfig, WeaknessType
+from .models import DebateCategory, ModelConfig, WeaknessType
 
 load_dotenv()
 
@@ -41,7 +41,7 @@ def generate(
     weakness: Annotated[Optional[str], typer.Option(help="Force weakness type: weak_evidence|argument_dropping|logical_gaps|burden_of_proof")] = None,
 ) -> None:
     """Generate synthetic debates."""
-    from generator import generate_batch
+    from .generator import generate_batch
 
     resolutions, defaults = _load_resolutions()
 
@@ -77,7 +77,7 @@ def generate(
 @app.command()
 def compile() -> None:
     """Compile individual debate JSONs into a single JSONL file."""
-    from compile import compile_to_jsonl
+    from .compile import compile_to_jsonl
 
     compile_to_jsonl(OUTPUT_DIR, JSONL_PATH)
 
@@ -85,7 +85,7 @@ def compile() -> None:
 @app.command()
 def stats() -> None:
     """Show dataset statistics."""
-    from compile import show_stats
+    from .compile import show_stats
 
     show_stats(OUTPUT_DIR)
 
@@ -99,7 +99,7 @@ def publish(
     """Compile dataset and publish to HuggingFace Hub."""
     import os
 
-    from publish import publish as do_publish
+    from .publish import publish as do_publish
 
     repo_id = repo or os.environ.get("DF_HF_REPO")
     if not repo_id:
@@ -112,8 +112,8 @@ def publish(
 @app.command()
 def annotate_status() -> None:
     """Show annotation progress — which debates are annotated, by whom."""
-    from agreement import load_annotations
-    from models import Debate
+    from .agreement import load_annotations
+    from .models import Debate
 
     # Load debates
     debate_ids: dict[str, str] = {}
@@ -156,13 +156,13 @@ def serve(
     import uvicorn
 
     typer.echo(f"Starting DebateFlow server on http://localhost:{port}")
-    uvicorn.run("server:app", host="0.0.0.0", port=port, log_level="info")
+    uvicorn.run("debateflow.server:app", host="0.0.0.0", port=port, log_level="info")
 
 
 @app.command()
 def annotate_agreement() -> None:
     """Compute inter-annotator agreement (requires 2+ annotators on same debates)."""
-    from agreement import compute_agreement, load_annotations
+    from .agreement import compute_agreement, load_annotations
 
     annotations = load_annotations(ANNOTATIONS_DIR)
     if not annotations:

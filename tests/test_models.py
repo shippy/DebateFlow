@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from models import (
+from debateflow.models import (
     ANNOTATION_DIMENSIONS,
     Annotation,
     ConstraintInfo,
