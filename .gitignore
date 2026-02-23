@@ -30,3 +30,4 @@ Thumbs.db
 # Large binaries
 references/
 *.pdf
+.envrc
