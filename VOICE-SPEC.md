@@ -1,7 +1,7 @@
 # DebateFlow Voice Component: Spoken Debate Playback
 
 - **Author:** Šimon Podhajský
-- **Status:** Design spec
+- **Status:** Mostly implemented
 - **Depends on:** DebateFlow core benchmark (SPEC.md)
 
 ---
@@ -19,20 +19,17 @@ This is not an evaluation dimension — delivery quality is not scored. The voic
 ### Architecture
 
 ```
-debate.json → TTS (ElevenLabs) → per-turn audio → stitched full debate
+debate.json → TTS (ElevenLabs) → per-turn audio (on-demand, cached to disk)
 ```
 
-Each debate produces:
-- Four per-turn audio files (`{debate_id}_turn_{n}_{side}.mp3`)
-- One stitched full-debate file with ~2s pauses between turns (`{debate_id}_full.mp3`)
-- Audio metadata added to the debate JSON
+Audio is synthesized **on demand** via the annotation server (`/api/tts`), cached to `output/audio/{debate_id}/`. No batch pre-generation needed — the frontend requests TTS as the user clicks play.
 
 ### Voice Assignment
 
 - **Affirmative** and **Negative** get distinct voices within each debate (different timbre)
 - Same voice across all turns for a given side (consistency within a debate)
-- **Voice pairings rotate across debates** — maintain a pool of 4–6 voices and cycle through pairings so consecutive debates sound different
-- Voice pairing recorded in metadata for reproducibility
+- **Voice pairings rotate across debates** — pool of 6 voices, deterministic pairing via hash of `debate_id`
+- Voice pairing recorded in response metadata
 
 ### Providers: ElevenLabs (preferred) + OpenAI (fallback)
 
@@ -40,8 +37,8 @@ Two TTS providers are supported. ElevenLabs is used when an API key is available
 
 #### ElevenLabs (primary)
 - High-quality, natural-sounding speech
+- Model: `eleven_multilingual_v2`, output: `mp3_22050_32`
 - Voice selection via `voice_id`
-- API: `POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}`
 - **Voice pool:** George, Liam, Charlotte, Lily, Will, Laura (6 voices, 15 pairings)
 - **Cost:** ~$0.03–0.10/min — expensive on lower-tier subscriptions (~20% of starter credits per debate)
 - **Env vars:** `DF_ELEVENLABS_API_KEY` or `ELEVENLABS_API_KEY`
@@ -65,82 +62,46 @@ When falling back from ElevenLabs to OpenAI mid-synthesis (e.g. rate limit), voi
 ## 3. Audio Format
 
 - **Format:** MP3
-- **Sample rate:** 24kHz (ElevenLabs default)
-- **Inter-turn pause:** 2 seconds of silence
-- **Naming:** `{debate_id}_turn_{n}_{side}.mp3`, `{debate_id}_full.mp3`
+- **Sample rate:** 22.05kHz
+- **Bitrate:** 32kbps
+- **Naming:** `{debate_id}_turn_{n}_{side}.mp3`
 - **Storage:** `output/audio/{debate_id}/`
 
 ---
 
-## 4. Data Schema Extension
+## 4. Frontend Integration (✅ Implemented)
 
-```python
-class VoiceConfig(BaseModel):
-    voice_id: str              # ElevenLabs voice ID
-    voice_name: str            # Human-readable name
-    model_id: str = "eleven_multilingual_v2"
+The annotation frontend (`annotate.html`) includes:
 
-class TurnAudio(BaseModel):
-    file: str                  # Relative path to audio file
-    duration_seconds: float
-
-class DebateAudio(BaseModel):
-    aff_voice: VoiceConfig
-    neg_voice: VoiceConfig
-    turns: list[TurnAudio]     # Parallel to Debate.turns
-    full_file: str             # Stitched full-debate audio
-    full_duration_seconds: float
-    generated_at: datetime
-```
-
-The `Debate` model gains an optional `audio: DebateAudio | None` field.
+- **Play/pause per turn** — button on each turn card
+- **Play All** — sequential playback through all 4 turns, auto-advancing
+- **Visual indicator** — turn card highlighted (blue border) while playing, yellow while loading/synthesizing
+- **Speed control** — 1x / 1.25x / 1.5x dropdown
+- **Status text** — shows "Synthesizing Aff Opening..." / "Playing Neg Closing" etc.
+- **Caching** — TTS results cached server-side; second play is instant
 
 ---
 
-## 5. Frontend Integration
+## 5. Implementation Status
 
-Add to the existing evaluation frontend:
+| Component | Status | File |
+|-----------|--------|------|
+| ElevenLabs API wrapper | ✅ Done | `voice.py` |
+| Voice pool + deterministic pairing | ✅ Done | `voice.py` |
+| On-demand TTS endpoint | ✅ Done | `server.py` (`/api/tts`) |
+| Frontend audio player | ✅ Done | `static/annotate.html` |
+| Disk caching | ✅ Done | `server.py` |
+| Batch pre-synthesis CLI (`synthesize`) | ❌ Not yet | — |
+| Full-debate stitched audio | ❌ Not yet | — |
+| Data schema extension (`DebateAudio`) | ❌ Not yet | `models.py` |
 
-- **Play/pause per turn** — click a turn to hear it
-- **Play full debate** — sequential playback of all turns
-- **Visual indicator** — highlight which turn is currently playing
-- **Speed control** — 1x / 1.25x / 1.5x playback
+### Remaining work
 
-The transcript remains visible and scrollable during playback. No audio-only mode — this is a reading aid, not a separate evaluation condition.
+1. **Batch synthesis CLI** — `uv run python cli.py synthesize` to pre-generate all audio (useful for offline use or dataset publication)
+2. **Full-debate stitched audio** — concatenate per-turn MP3s with 2s silence gaps into `{debate_id}_full.mp3`
+3. **Schema extension** — add optional `audio: DebateAudio | None` to the `Debate` model so audio metadata persists in the debate JSON
 
----
-
-## 6. Implementation
-
-### New files
-- `voice.py` — ElevenLabs API wrapper, voice selection
-- `synthesize.py` — Generate audio from debate JSON, stitch with pydub/ffmpeg
-
-### CLI command
-```bash
-# Synthesize audio for all debates
-uv run python cli.py synthesize
-
-# Synthesize a specific debate
-uv run python cli.py synthesize --debate-id abc12345
-
-# List available ElevenLabs voices
-uv run python cli.py voices
-```
-
-### Dependencies
-```
-elevenlabs>=1.0.0
-openai>=1.0.0
-pydub>=0.25.0       # Audio stitching
-```
-
-### Implementation order
-1. ElevenLabs API wrapper + voice listing
-2. Per-turn synthesis
-3. Stitching (pydub + 2s silence insertion)
-4. Metadata generation + schema update
-5. Frontend audio player
+These are nice-to-haves — the on-demand server approach already works for annotation sessions.
 
 ---
 
