@@ -9,8 +9,9 @@ build/
 .env
 .venv/
 
-# Output
-output/
+# Output (keep debates/ and annotations/ tracked)
+output/audio/
+output/debateflow.jsonl
 
 # Tool caches
 .mypy_cache/
