@@ -17,6 +17,7 @@ dependencies = [
     "datasets>=3.0.0",
     "huggingface_hub>=0.25.0",
     "elevenlabs>=1.0.0",
+    "openai>=1.0.0",
     "starlette>=0.40.0",
     "uvicorn>=0.30.0",
 ]

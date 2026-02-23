@@ -34,21 +34,31 @@ Each debate produces:
 - **Voice pairings rotate across debates** — maintain a pool of 4–6 voices and cycle through pairings so consecutive debates sound different
 - Voice pairing recorded in metadata for reproducibility
 
-### Provider: ElevenLabs
+### Providers: ElevenLabs (preferred) + OpenAI (fallback)
 
-ElevenLabs as the primary (and initially only) TTS provider:
+Two TTS providers are supported. ElevenLabs is used when an API key is available; OpenAI serves as a cost-effective fallback.
+
+#### ElevenLabs (primary)
 - High-quality, natural-sounding speech
-- Large voice library for building a diverse pool
 - Voice selection via `voice_id`
 - API: `POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}`
+- **Voice pool:** George, Liam, Charlotte, Lily, Will, Laura (6 voices, 15 pairings)
+- **Cost:** ~$0.03–0.10/min — expensive on lower-tier subscriptions (~20% of starter credits per debate)
+- **Env vars:** `DF_ELEVENLABS_API_KEY` or `ELEVENLABS_API_KEY`
 
-**Voice pool (starter):**
-- Curate 4–6 voices with varied timbre, pitch, and character
-- Mix genders and vocal qualities for variety
-- Avoid extreme accents — neutral, clear delivery appropriate for debate
-- Pairings should always be clearly distinguishable (no two similar-sounding voices in the same debate)
+#### OpenAI tts-1-hd (fallback)
+- Good quality, slightly less natural than ElevenLabs but much cheaper
+- **Voice pool:** Alloy, Echo, Fable, Onyx, Nova, Shimmer (6 voices, 15 pairings)
+- **Cost:** ~$0.12 per debate (~$3.48 for 29 debates) — well-suited for bulk annotation
+- **Env var:** `OPENAI_API_KEY`
 
-**Cost estimate:** ~$0.03–0.10/min. At ~4 min per debate, a 100-debate set costs $3–10.
+#### Fallback behavior
+- If ElevenLabs key is set → use ElevenLabs
+- If ElevenLabs synthesis fails at runtime → fall back to OpenAI (if key available)
+- If only OpenAI key is set → use OpenAI directly
+- If neither key is set → error
+
+When falling back from ElevenLabs to OpenAI mid-synthesis (e.g. rate limit), voice names are mapped by index position (George→Alloy, Liam→Echo, etc.).
 
 ---
 
@@ -121,6 +131,7 @@ uv run python cli.py voices
 ### Dependencies
 ```
 elevenlabs>=1.0.0
+openai>=1.0.0
 pydub>=0.25.0       # Audio stitching
 ```
 
