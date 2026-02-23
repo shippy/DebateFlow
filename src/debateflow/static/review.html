@@ -188,6 +188,7 @@
                           x-text="v.l"></button>
                 </template>
               </div>
+              <div class="dim-def" x-show="dim.guidance && debate && dim.guidance[debate.metadata.category]" x-text="dim.guidance?.[debate?.metadata?.category]?.aff" style="margin-top: -4px; margin-bottom: 4px;"></div>
               <div class="score-row">
                 <span class="side-label neg">NEG</span>
                 <template x-for="v in [{n:1,l:'Weak'},{n:2,l:'OK'},{n:3,l:'Strong'}]" :key="'neg'+di+v.n">
@@ -197,6 +198,7 @@
                           x-text="v.l"></button>
                 </template>
               </div>
+              <div class="dim-def" x-show="dim.guidance && debate && dim.guidance[debate.metadata.category]" x-text="dim.guidance?.[debate?.metadata?.category]?.neg" style="margin-top: -4px;"></div>
             </div>
           </template>
 
@@ -247,7 +249,11 @@ function reviewApp() {
 
     dimensions: [
       { key: 'clash_engagement', label: 'Clash Engagement', definition: 'Did each side address the opponent\'s arguments or talk past them?' },
-      { key: 'burden_fulfillment', label: 'Burden Fulfillment', definition: 'Did each side meet its burden of proof?' },
+      { key: 'burden_fulfillment', label: 'Burden Fulfillment', definition: 'Did each side adequately support their core claims and meet their argumentative obligations?', guidance: {
+        policy: { aff: 'Did AFF demonstrate a need for change and show the proposal solves it?', neg: 'Did NEG defend the status quo or show the proposal causes more harm?' },
+        values: { aff: 'Did AFF show that the value or principle they champion should take precedence?', neg: 'Did NEG show the competing value takes priority or that AFF\'s framing is flawed?' },
+        empirical: { aff: 'Did AFF provide sufficient evidence that the claim is true?', neg: 'Did NEG provide sufficient evidence that the claim is false or unsupported?' },
+      }},
       { key: 'rebuttal_quality', label: 'Rebuttal Quality', definition: 'Specificity and depth of refutations \u2014 targeting weak premises vs. asserting disagreement.' },
       { key: 'argument_extension', label: 'Argument Extension', definition: 'Did arguments develop across turns, or merely repeat the opening?' },
       { key: 'strategic_adaptation', label: 'Strategic Adaptation', definition: 'Did speakers adjust their approach based on the opponent\'s actual moves?' },

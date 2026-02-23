@@ -96,37 +96,114 @@ class TelegramJudgingSession:
 
         return str(ogg_path)
 
-    def get_scoring_prompts(self, debate_id: str) -> list[dict]:
-        """Return list of scoring prompt dicts with dimension, side, and button configs."""
-        dimensions: list[Dimension] = [
-            "clash",
-            "burden_of_proof",
-            "rebuttal",
-            "extension",
-            "adaptation",
-        ]
-        sides: list[Side] = ["AFF", "NEG"]
+    def get_scoring_prompts(self, debate_id: str, category: str = "policy") -> list[dict]:
+        """Return list of scoring prompt dicts with dimension, side, and button configs.
 
+        Args:
+            debate_id: The debate identifier.
+            category: Debate category — "policy", "values", or "empirical".
+                Controls the burden fulfillment guidance text.
+        """
+        dimension_defs: list[dict] = [
+            {
+                "key": "clash",
+                "label": "Clash Engagement",
+                "number": 1,
+                "definition": "Did each side address the opponent's arguments or talk past them?",
+                "prompts": {
+                    "AFF": "Did the AFF address the opponent's arguments or talk past them?",
+                    "NEG": "Did the NEG address the opponent's arguments or talk past them?",
+                },
+            },
+            {
+                "key": "burden_of_proof",
+                "label": "Burden Fulfillment",
+                "number": 2,
+                "definition": "Did each side adequately support their core claims and meet their argumentative obligations?",
+                "prompts": {
+                    "AFF": {
+                        "policy": "Did AFF demonstrate a need for change and show the proposal solves it?",
+                        "values": "Did AFF show that the value or principle they champion should take precedence?",
+                        "empirical": "Did AFF provide sufficient evidence that the claim is true?",
+                    },
+                    "NEG": {
+                        "policy": "Did NEG defend the status quo or show the proposal causes more harm?",
+                        "values": "Did NEG show the competing value takes priority or that AFF's framing is flawed?",
+                        "empirical": "Did NEG provide sufficient evidence that the claim is false or unsupported?",
+                    },
+                },
+            },
+            {
+                "key": "rebuttal",
+                "label": "Rebuttal Quality",
+                "number": 3,
+                "definition": "Specificity and depth of refutations — targeting weak premises vs. asserting disagreement.",
+                "prompts": {
+                    "AFF": "How specific and deep were the AFF's refutations?",
+                    "NEG": "How specific and deep were the NEG's refutations?",
+                },
+            },
+            {
+                "key": "extension",
+                "label": "Argument Extension",
+                "number": 4,
+                "definition": "Did arguments develop across turns, or merely repeat the opening?",
+                "prompts": {
+                    "AFF": "Did the AFF's arguments develop across turns or just repeat?",
+                    "NEG": "Did the NEG's arguments develop across turns or just repeat?",
+                },
+            },
+            {
+                "key": "adaptation",
+                "label": "Strategic Adaptation",
+                "number": 5,
+                "definition": "Did speakers adjust their approach based on the opponent's actual moves?",
+                "prompts": {
+                    "AFF": "Did the AFF adjust their approach based on the NEG's moves?",
+                    "NEG": "Did the NEG adjust their approach based on the AFF's moves?",
+                },
+            },
+        ]
+
+        sides: list[Side] = ["AFF", "NEG"]
         prompts = []
-        for dimension in dimensions:
+
+        for dim in dimension_defs:
             for side in sides:
+                # Build the prompt text
+                side_prompt = dim["prompts"][side]
+                if isinstance(side_prompt, dict):
+                    # Category-specific (burden fulfillment)
+                    side_prompt = side_prompt.get(category, side_prompt.get("policy", ""))
+                    text = (
+                        f"\U0001f4ca {dim['number']}/5 \u2014 {dim['label']}\n\n"
+                        f"{dim['definition']}\n\n"
+                        f"For this {category} debate:\n"
+                        f"{side_prompt}"
+                    )
+                else:
+                    text = (
+                        f"\U0001f4ca {dim['number']}/5 \u2014 {dim['label']}\n\n"
+                        f"{side_prompt}"
+                    )
+
                 prompts.append(
                     {
-                        "dimension": dimension,
+                        "dimension": dim["key"],
                         "side": side,
-                        "text": f"Score {dimension.replace('_', ' ').title()} - {side}:",
+                        "text": text,
                         "buttons": [
                             {
-                                "text": "Weak (1)",
-                                "callback_data": f"score:{debate_id}:{dimension}:{side}:1",
+                                "text": "Weak \u274c",
+                                "callback_data": f"score:{debate_id}:{dim['key']}:{side}:1",
                             },
                             {
-                                "text": "OK (2)",
-                                "callback_data": f"score:{debate_id}:{dimension}:{side}:2",
+                                "text": "OK \u2796",
+                                "callback_data": f"score:{debate_id}:{dim['key']}:{side}:2",
                             },
                             {
-                                "text": "Strong (3)",
-                                "callback_data": f"score:{debate_id}:{dimension}:{side}:3",
+                                "text": "Strong \u2705",
+                                "callback_data": f"score:{debate_id}:{dim['key']}:{side}:3",
                             },
                         ],
                     }
