@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DebateFlow Review</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --border: #dee2e6;
+    --text: #212529;
+    --muted: #6c757d;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --danger: #dc3545;
+    --success: #198754;
+    --warn: #ffc107;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .header h1 { font-size: 16px; font-weight: 600; }
+  .header nav { display: flex; gap: 16px; align-items: center; }
+  .header nav a { font-size: 13px; color: var(--primary); text-decoration: none; }
+  .header nav a:hover { text-decoration: underline; }
+
+  .main { display: grid; grid-template-columns: 280px 1fr 380px; gap: 0; height: calc(100vh - 49px); }
+
+  /* Sidebar */
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 16px; overflow-y: auto; }
+  .sidebar h3 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 12px; }
+  .sidebar .empty { font-size: 13px; color: var(--muted); font-style: italic; }
+
+  .debate-group { margin-bottom: 12px; }
+  .debate-id { font-size: 13px; font-weight: 600; font-family: monospace; padding: 6px 8px; background: #f0f0f0; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .debate-id:hover { background: #e8e8e8; }
+  .debate-id .arrow { font-size: 10px; transition: transform 0.15s; }
+  .debate-id .arrow.open { transform: rotate(90deg); }
+  .debate-resolution { font-size: 11px; color: var(--muted); padding: 2px 8px 4px; line-height: 1.3; }
+  .annotator-list { padding: 4px 0 0 16px; }
+  .annotator-item { font-size: 13px; padding: 4px 8px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .annotator-item:hover { background: #eef2ff; }
+  .annotator-item.active { background: var(--primary); color: white; }
+
+  /* Transcript */
+  .transcript { padding: 24px; overflow-y: auto; }
+  .transcript .placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted); font-size: 14px; }
+  .resolution { font-size: 15px; font-weight: 600; margin-bottom: 20px; padding: 12px 16px; background: #eef2ff; border-radius: 6px; border-left: 4px solid var(--primary); }
+  .meta { font-size: 12px; color: var(--muted); margin-bottom: 16px; display: flex; gap: 16px; }
+  .meta span { background: #f0f0f0; padding: 2px 8px; border-radius: 3px; }
+
+  .turn { margin-bottom: 16px; padding: 16px; background: var(--surface); border-radius: 6px; border: 1px solid var(--border); }
+  .turn-header { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .turn-header.aff { color: #2563eb; }
+  .turn-header.neg { color: #dc2626; }
+  .turn-text { font-size: 14px; line-height: 1.6; }
+  .turn-text p { margin-bottom: 0.6em; }
+  .turn-text ul, .turn-text ol { margin: 0.4em 0 0.6em 1.5em; }
+  .turn-text h1, .turn-text h2, .turn-text h3 { margin: 0.8em 0 0.3em; font-size: 14px; font-weight: 700; }
+  .turn-text strong { font-weight: 700; }
+  .turn-text blockquote { border-left: 3px solid var(--border); padding-left: 12px; color: var(--muted); margin: 0.4em 0; }
+
+  /* Scoring panel */
+  .scoring { background: var(--surface); border-left: 1px solid var(--border); padding: 24px; overflow-y: auto; }
+  .scoring .placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted); font-size: 14px; }
+  .scoring h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+
+  .winner-section { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .winner-section label { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 4px 0; cursor: pointer; }
+  .winner-section input[type="radio"] { cursor: pointer; }
+
+  .dim-section { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+  .dim-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
+  .dim-def { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-style: italic; }
+  .score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 13px; }
+  .score-row .side-label { width: 32px; font-weight: 600; font-size: 12px; }
+  .score-row .side-label.aff { color: #2563eb; }
+  .score-row .side-label.neg { color: #dc2626; }
+  .score-btn { min-width: 56px; height: 28px; padding: 0 8px; border: 1px solid var(--border); background: var(--surface); border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.15s; }
+  .score-btn:hover { border-color: var(--primary); }
+  .score-btn.selected { background: var(--primary); color: white; border-color: var(--primary); }
+  .score-btn.incomplete { border-color: var(--danger); }
+
+  .justification { margin-top: 16px; }
+  .justification textarea { width: 100%; height: 80px; border: 1px solid var(--border); border-radius: 4px; padding: 8px; font-size: 13px; font-family: inherit; resize: vertical; }
+  .justification label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 4px; }
+
+  .save-btn { margin-top: 16px; width: 100%; padding: 10px; background: var(--success); color: white; border: none; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .save-btn:hover { background: #157347; }
+  .save-btn:disabled { background: var(--muted); cursor: not-allowed; }
+
+  .feedback { margin-top: 8px; font-size: 13px; text-align: center; }
+  .feedback.success { color: var(--success); }
+  .feedback.error { color: var(--danger); }
+
+  .keyboard-help { margin-top: 12px; font-size: 11px; color: var(--muted); }
+  .keyboard-help kbd { background: #eee; padding: 1px 5px; border-radius: 3px; border: 1px solid #ccc; font-family: monospace; }
+</style>
+</head>
+<body x-data="reviewApp()" @keydown.window="handleKeydown($event)">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>DebateFlow Review</h1>
+    <nav>
+      <a href="/">Annotate</a>
+    </nav>
+  </div>
+
+  <div class="main">
+    <!-- Left: Sidebar -->
+    <div class="sidebar">
+      <h3>Annotations</h3>
+      <div x-show="Object.keys(annotations).length === 0" class="empty">No annotations found.</div>
+      <template x-for="debateId in Object.keys(annotations).sort()" :key="debateId">
+        <div class="debate-group">
+          <div class="debate-id" @click="toggleExpand(debateId)">
+            <span class="arrow" :class="{ open: expanded[debateId] }">&#9654;</span>
+            <span x-text="debateId"></span>
+          </div>
+          <div class="debate-resolution" x-show="resolutions[debateId]" x-text="resolutions[debateId]"></div>
+          <div class="annotator-list" x-show="expanded[debateId]">
+            <template x-for="ann in annotations[debateId]" :key="debateId + '_' + ann">
+              <div class="annotator-item"
+                   :class="{ active: selectedDebateId === debateId && selectedAnnotatorId === ann }"
+                   @click="loadAnnotation(debateId, ann)"
+                   x-text="ann"></div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- Center: Transcript -->
+    <div class="transcript">
+      <div x-show="!debate" class="placeholder">Select an annotation from the sidebar to begin review.</div>
+      <template x-if="debate">
+        <div>
+          <div class="resolution" x-text="debate.metadata.resolution"></div>
+          <div class="meta">
+            <span x-text="'Category: ' + debate.metadata.category"></span>
+            <span x-show="debate.metadata.constraint.type" x-text="'Constraint: ' + (debate.metadata.constraint.type || 'none') + (debate.metadata.constraint.target_side ? ' (' + debate.metadata.constraint.target_side + ')' : '')"></span>
+            <span x-show="debate.metadata.is_control">Control</span>
+          </div>
+          <template x-for="(turn, ti) in debate.turns" :key="turn.role">
+            <div class="turn">
+              <div class="turn-header" :class="turn.speaker">
+                <span x-text="turnLabel(turn)"></span>
+              </div>
+              <div class="turn-text" x-html="renderMarkdown(turn.text)"></div>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+
+    <!-- Right: Scoring -->
+    <div class="scoring">
+      <div x-show="!debate" class="placeholder">Scoring will appear here.</div>
+      <template x-if="debate">
+        <div>
+          <h3>Scoring</h3>
+
+          <!-- Winner -->
+          <div class="winner-section">
+            <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px;">Overall Winner</div>
+            <label><input type="radio" value="aff" x-model="form.winner"> Affirmative</label>
+            <label><input type="radio" value="neg" x-model="form.winner"> Negative</label>
+          </div>
+
+          <!-- Dimensions -->
+          <template x-for="(dim, di) in dimensions" :key="dim.key">
+            <div class="dim-section">
+              <div class="dim-title">
+                <span x-text="dim.label"></span>
+              </div>
+              <div class="dim-def" x-text="dim.definition"></div>
+              <div class="score-row">
+                <span class="side-label aff">AFF</span>
+                <template x-for="v in [{n:1,l:'Weak'},{n:2,l:'OK'},{n:3,l:'Strong'}]" :key="'aff'+di+v.n">
+                  <button class="score-btn"
+                          :class="{ selected: form.scores[dim.key]?.aff === v.n, incomplete: showIncomplete && !form.scores[dim.key]?.aff }"
+                          @click="setScore(dim.key, 'aff', v.n)"
+                          x-text="v.l"></button>
+                </template>
+              </div>
+              <div class="score-row">
+                <span class="side-label neg">NEG</span>
+                <template x-for="v in [{n:1,l:'Weak'},{n:2,l:'OK'},{n:3,l:'Strong'}]" :key="'neg'+di+v.n">
+                  <button class="score-btn"
+                          :class="{ selected: form.scores[dim.key]?.neg === v.n, incomplete: showIncomplete && !form.scores[dim.key]?.neg }"
+                          @click="setScore(dim.key, 'neg', v.n)"
+                          x-text="v.l"></button>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- Justification -->
+          <div class="justification">
+            <label>Winner Justification</label>
+            <textarea x-model="form.justification" placeholder="Why did this side win?"></textarea>
+          </div>
+
+          <!-- Save -->
+          <button class="save-btn" :disabled="!isComplete() || saving" @click="save()">
+            <span x-text="saving ? 'Saving...' : 'Save'"></span>
+          </button>
+          <div class="feedback" :class="{ success: feedbackType === 'success', error: feedbackType === 'error' }" x-show="feedbackMsg" x-text="feedbackMsg"></div>
+
+          <div class="keyboard-help">
+            <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> score &middot;
+            <kbd>a</kbd>/<kbd>n</kbd> winner &middot;
+            <kbd>&uarr;</kbd><kbd>&darr;</kbd> navigate dims &middot;
+            <kbd>Ctrl+Enter</kbd> save
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+<script>
+function reviewApp() {
+  return {
+    // Sidebar state
+    annotations: {},
+    resolutions: {},
+    expanded: {},
+
+    // Selected annotation
+    selectedDebateId: null,
+    selectedAnnotatorId: null,
+    debate: null,
+
+    // Form state
+    form: { winner: null, scores: {}, justification: '' },
+    showIncomplete: false,
+    activeDimIndex: 0,
+    activeSide: 'aff',
+    saving: false,
+    feedbackMsg: '',
+    feedbackType: '',
+
+    dimensions: [
+      { key: 'clash_engagement', label: 'Clash Engagement', definition: 'Did each side address the opponent\'s arguments or talk past them?' },
+      { key: 'burden_fulfillment', label: 'Burden Fulfillment', definition: 'Did each side meet its burden of proof?' },
+      { key: 'rebuttal_quality', label: 'Rebuttal Quality', definition: 'Specificity and depth of refutations \u2014 targeting weak premises vs. asserting disagreement.' },
+      { key: 'argument_extension', label: 'Argument Extension', definition: 'Did arguments develop across turns, or merely repeat the opening?' },
+      { key: 'strategic_adaptation', label: 'Strategic Adaptation', definition: 'Did speakers adjust their approach based on the opponent\'s actual moves?' },
+    ],
+
+    async init() {
+      this.resetForm();
+      await this.loadIndex();
+    },
+
+    resetForm() {
+      this.form = { winner: null, scores: {}, justification: '' };
+      this.dimensions.forEach(d => {
+        this.form.scores[d.key] = { aff: null, neg: null };
+      });
+      this.showIncomplete = false;
+      this.activeDimIndex = 0;
+      this.activeSide = 'aff';
+      this.feedbackMsg = '';
+      this.feedbackType = '';
+    },
+
+    async loadIndex() {
+      try {
+        const res = await fetch(`/api/annotations?t=${Date.now()}`);
+        this.annotations = await res.json();
+        // Load resolution snippets for sidebar
+        for (const debateId of Object.keys(this.annotations)) {
+          this.expanded[debateId] = true;
+          try {
+            const r = await fetch(`/output/debates/${debateId}.json?t=${Date.now()}`);
+            const d = await r.json();
+            this.resolutions[debateId] = d.metadata.resolution;
+          } catch (e) {
+            this.resolutions[debateId] = '';
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load annotations index:', e);
+      }
+    },
+
+    toggleExpand(debateId) {
+      this.expanded[debateId] = !this.expanded[debateId];
+    },
+
+    async loadAnnotation(debateId, annotatorId) {
+      this.selectedDebateId = debateId;
+      this.selectedAnnotatorId = annotatorId;
+      this.resetForm();
+
+      // Load debate transcript
+      try {
+        const res = await fetch(`/output/debates/${debateId}.json?t=${Date.now()}`);
+        this.debate = await res.json();
+      } catch (e) {
+        console.error('Failed to load debate:', e);
+        this.debate = null;
+        return;
+      }
+
+      // Load annotation and pre-fill form
+      try {
+        const res = await fetch(`/output/annotations/${debateId}_${annotatorId}.json?t=${Date.now()}`);
+        const ann = await res.json();
+        this.form.winner = ann.winner;
+        this.form.justification = ann.winner_justification || '';
+        for (const ds of (ann.dimension_scores || [])) {
+          if (this.form.scores[ds.dimension]) {
+            this.form.scores[ds.dimension].aff = ds.aff_score;
+            this.form.scores[ds.dimension].neg = ds.neg_score;
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load annotation:', e);
+      }
+
+      // Scroll transcript to top
+      this.$nextTick(() => {
+        const el = document.querySelector('.transcript');
+        if (el) el.scrollTop = 0;
+      });
+    },
+
+    renderMarkdown(text) {
+      return marked.parse(text || '');
+    },
+
+    turnLabel(turn) {
+      const sideLabel = turn.speaker === 'aff' ? 'Affirmative' : 'Negative';
+      const roleLabels = { opening: 'Opening', response: 'Response', rebuttal: 'Rebuttal', closing: 'Closing' };
+      return `${sideLabel} \u2014 ${roleLabels[turn.role] || turn.role}`;
+    },
+
+    setScore(dimKey, side, value) {
+      this.form.scores[dimKey][side] = value;
+    },
+
+    isComplete() {
+      if (!this.form.winner) return false;
+      if (!this.form.justification.trim()) return false;
+      for (const dim of this.dimensions) {
+        const s = this.form.scores[dim.key];
+        if (!s || !s.aff || !s.neg) return false;
+      }
+      return true;
+    },
+
+    async save() {
+      if (!this.isComplete()) {
+        this.showIncomplete = true;
+        return;
+      }
+
+      this.saving = true;
+      this.feedbackMsg = '';
+
+      const annotation = {
+        debate_id: this.selectedDebateId,
+        annotator_id: this.selectedAnnotatorId,
+        winner: this.form.winner,
+        winner_justification: this.form.justification.trim(),
+        dimension_scores: this.dimensions.map(d => ({
+          dimension: d.key,
+          aff_score: this.form.scores[d.key].aff,
+          neg_score: this.form.scores[d.key].neg,
+        })),
+        annotated_at: new Date().toISOString(),
+        annotation_version: '0.1.0',
+      };
+
+      try {
+        const res = await fetch('/api/annotations', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(annotation),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          this.feedbackMsg = `Saved ${data.saved}`;
+          this.feedbackType = 'success';
+        } else {
+          this.feedbackMsg = `Error: ${data.error || 'Unknown error'}`;
+          this.feedbackType = 'error';
+        }
+      } catch (e) {
+        this.feedbackMsg = `Network error: ${e.message}`;
+        this.feedbackType = 'error';
+      }
+
+      this.saving = false;
+    },
+
+    handleKeydown(event) {
+      if (!this.debate) return;
+
+      // Ctrl+Enter to save
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        this.save();
+        return;
+      }
+
+      // Don't intercept keys when typing in textarea/input
+      if (event.target.tagName === 'TEXTAREA' || event.target.tagName === 'INPUT') return;
+
+      // 1/2/3 to set score for active dimension
+      if (['1', '2', '3'].includes(event.key)) {
+        event.preventDefault();
+        const dim = this.dimensions[this.activeDimIndex];
+        if (dim) {
+          this.setScore(dim.key, this.activeSide, parseInt(event.key));
+          if (this.activeSide === 'aff') {
+            this.activeSide = 'neg';
+          } else {
+            this.activeSide = 'aff';
+            if (this.activeDimIndex < this.dimensions.length - 1) {
+              this.activeDimIndex++;
+            }
+          }
+        }
+        return;
+      }
+
+      // Arrow keys to navigate dimensions
+      if (event.key === 'ArrowUp' && this.activeDimIndex > 0) {
+        event.preventDefault();
+        this.activeDimIndex--;
+      }
+      if (event.key === 'ArrowDown' && this.activeDimIndex < this.dimensions.length - 1) {
+        event.preventDefault();
+        this.activeDimIndex++;
+      }
+      // a/n to pick winner
+      if (event.key === 'a') { this.form.winner = 'aff'; }
+      if (event.key === 'n') { this.form.winner = 'neg'; }
+    },
+  };
+}
+</script>
+</body>
+</html>
