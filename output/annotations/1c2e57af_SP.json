@@ -1,0 +1,17 @@
+{
+  "debate_id": "1c2e57af",
+  "annotator_id": "SP",
+  "source": "telegram",
+  "winner": "aff",
+  "winner_justification": "Negative second speaker got confused about the motion and started arguing the opposite, thereby becoming inconsistent",
+  "dimension_scores": [
+    {"dimension": "clash_engagement", "aff_score": 3, "neg_score": 2},
+    {"dimension": "burden_fulfillment", "aff_score": 3, "neg_score": 1},
+    {"dimension": "rebuttal_quality", "aff_score": 3, "neg_score": 1},
+    {"dimension": "argument_extension", "aff_score": 3, "neg_score": 1},
+    {"dimension": "strategic_adaptation", "aff_score": 3, "neg_score": 1}
+  ],
+  "annotated_at": "2026-02-23T17:20:00Z",
+  "annotation_version": "0.1.0",
+  "audio_listened": true
+}
