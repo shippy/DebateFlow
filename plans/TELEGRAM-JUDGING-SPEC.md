@@ -2,7 +2,7 @@
 
 - **Author:** Šimon Podhajský
 - **Status:** Design spec
-- **Depends on:** DebateFlow voice pipeline (VOICE-SPEC.md), OpenClaw Telegram channel
+- **Depends on:** DebateFlow voice pipeline (`plans/VOICE-SPEC.md`), OpenClaw Telegram channel
 
 ---
 

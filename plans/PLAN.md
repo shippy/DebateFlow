@@ -2,9 +2,7 @@
 
 ## Context
 
-The DebateFlow benchmark spec (`working/debate-benchmark/SPEC.md`) defines a benchmark for evaluating LLM debate judgment. Before any evaluation can happen, we need debates to judge. This plan covers the first infrastructure piece: a synthetic debate generator that produces 4-turn transcripts with controlled asymmetries and control debates.
-
-The plan will be stored at `working/debate-benchmark/PLAN.md` alongside the spec. The user will reference both when setting up the standalone repo.
+The DebateFlow benchmark spec (`plans/SPEC.md`) defines a benchmark for evaluating LLM debate judgment. Before any evaluation can happen, we need debates to judge. This plan covers the first infrastructure piece: a synthetic debate generator that produces 4-turn transcripts with controlled asymmetries and control debates.
 
 ---
 
@@ -15,22 +13,30 @@ debateflow/
 ├── pyproject.toml
 ├── .env.example              # API key template
 ├── resolutions.yaml          # Seed resolutions
-├── models.py                 # Pydantic data models
-├── providers.py              # LLM provider factory (Anthropic + OpenAI)
-├── prompts.py                # System prompts + constraint injection templates
-├── generator.py              # Core 4-turn generation pipeline
-├── compile.py                # JSONL compilation + stats
-├── publish.py                # HuggingFace Hub publication
-├── dataset_card.py           # Dataset card template generation
-├── cli.py                    # Typer CLI entry point
+├── plans/                    # Specs and planning docs
+│   ├── PLAN.md
+│   ├── SPEC.md
+│   ├── VOICE-SPEC.md
+│   └── TELEGRAM-JUDGING-SPEC.md
+├── src/debateflow/
+│   ├── models.py             # Pydantic data models
+│   ├── providers.py          # LLM provider factory (Anthropic + OpenAI)
+│   ├── prompts.py            # System prompts + constraint injection templates
+│   ├── generator.py          # Core 4-turn generation pipeline
+│   ├── compile.py            # JSONL compilation + stats
+│   ├── publish.py            # HuggingFace Hub publication
+│   ├── dataset_card.py       # Dataset card template generation
+│   ├── cli.py                # Typer CLI entry point
+│   ├── voice.py              # ElevenLabs TTS voice synthesis
+│   ├── telegram_judging.py   # Telegram judging session management
+│   ├── server.py             # Web annotation server
+│   └── static/               # Web UI (annotate + review)
 ├── output/                   # Generated debates (gitignored)
 │   └── debates/              # Individual JSON files
 └── tests/
     ├── test_models.py
     └── test_prompts.py
 ```
-
-Flat layout — no `src/` directory. At 7 modules this adds no value.
 
 ---
 

@@ -2,7 +2,7 @@
 
 - **Author:** Šimon Podhajský
 - **Status:** Mostly implemented
-- **Depends on:** DebateFlow core benchmark (SPEC.md)
+- **Depends on:** DebateFlow core benchmark (`plans/SPEC.md`)
 
 ---
 
