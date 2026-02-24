@@ -1,0 +1,14 @@
+{
+  "debate_id": "49de8ff5",
+  "annotator": "SP",
+  "timestamp": "2026-02-24T17:15:00Z",
+  "scores": {
+    "clash": {"aff": 2, "neg": 3},
+    "burden": {"aff": 2, "neg": 3},
+    "rebuttal": {"aff": 3, "neg": 3},
+    "extension": {"aff": 3, "neg": 3},
+    "adaptation": {"aff": 3, "neg": 2}
+  },
+  "winner": "neg",
+  "justification": "the burden, the Neg convinced me that the net harm has to be proven more, and they've given enough benefit to outweigh it. (Some rebuttal confusing, though.)"
+}

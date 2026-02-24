@@ -1,0 +1,29 @@
+{
+  "debate_id": "3da1bb98",
+  "annotator": "SP",
+  "timestamp": "2026-02-24T07:05:00Z",
+  "scores": {
+    "clash": {
+      "aff": 2,
+      "neg": 2
+    },
+    "burden": {
+      "aff": 3,
+      "neg": 3
+    },
+    "rebuttal": {
+      "aff": 2,
+      "neg": 3
+    },
+    "extension": {
+      "aff": 1,
+      "neg": 2
+    },
+    "adaptation": {
+      "aff": 2,
+      "neg": 2
+    }
+  },
+  "winner": "neg",
+  "justification": "Stronger argument on the negative overall despite slightly weaker evidence"
+}
