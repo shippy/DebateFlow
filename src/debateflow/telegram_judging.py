@@ -114,6 +114,11 @@ class TelegramJudgingSession:
                     "AFF": "Did the AFF address the opponent's arguments or talk past them?",
                     "NEG": "Did the NEG address the opponent's arguments or talk past them?",
                 },
+                "anchors": {
+                    1: "Talked past the opponent entirely",
+                    2: "Addressed the opponent's general thrust",
+                    3: "Engaged with multiple specific arguments",
+                },
             },
             {
                 "key": "burden_of_proof",
@@ -132,6 +137,11 @@ class TelegramJudgingSession:
                         "empirical": "Did NEG provide sufficient evidence that the claim is false or unsupported?",
                     },
                 },
+                "anchors": {
+                    1: "Side-specific obligations unaddressed",
+                    2: "Attempted their burden but left notable gaps",
+                    3: "Each element of their burden clearly covered",
+                },
             },
             {
                 "key": "rebuttal",
@@ -141,6 +151,11 @@ class TelegramJudgingSession:
                 "prompts": {
                     "AFF": "How specific and deep were the AFF's refutations?",
                     "NEG": "How specific and deep were the NEG's refutations?",
+                },
+                "anchors": {
+                    1: "Mere contradiction (\"that's wrong\")",
+                    2: "Challenged conclusions but not underlying reasoning",
+                    3: "Identified and attacked a specific weak premise",
                 },
             },
             {
@@ -152,6 +167,11 @@ class TelegramJudgingSession:
                     "AFF": "Did the AFF's arguments develop across turns or just repeat?",
                     "NEG": "Did the NEG's arguments develop across turns or just repeat?",
                 },
+                "anchors": {
+                    1: "Repeated opening arguments verbatim",
+                    2: "Some new framing but no substantive new material",
+                    3: "Added new evidence or reasoning that advanced the case",
+                },
             },
             {
                 "key": "adaptation",
@@ -161,6 +181,11 @@ class TelegramJudgingSession:
                 "prompts": {
                     "AFF": "Did the AFF adjust their approach based on the NEG's moves?",
                     "NEG": "Did the NEG adjust their approach based on the AFF's moves?",
+                },
+                "anchors": {
+                    1: "Could have been written without hearing the opponent",
+                    2: "Some responsiveness but core approach unchanged",
+                    3: "Clearly shifted priorities based on how the debate unfolded",
                 },
             },
         ]
@@ -172,6 +197,15 @@ class TelegramJudgingSession:
             for side in sides:
                 # Build the prompt text
                 side_prompt = dim["prompts"][side]
+                anchors = dim.get("anchors", {})
+                anchor_lines = (
+                    f"\n\n\u274c {anchors.get(1, '')}\n"
+                    f"\u2796 {anchors.get(2, '')}\n"
+                    f"\u2705 {anchors.get(3, '')}"
+                    if anchors
+                    else ""
+                )
+
                 if isinstance(side_prompt, dict):
                     # Category-specific (burden fulfillment)
                     side_prompt = side_prompt.get(category, side_prompt.get("policy", ""))
@@ -180,11 +214,13 @@ class TelegramJudgingSession:
                         f"{dim['definition']}\n\n"
                         f"For this {category} debate:\n"
                         f"{side_prompt}"
+                        f"{anchor_lines}"
                     )
                 else:
                     text = (
                         f"\U0001f4ca {dim['number']}/5 \u2014 {dim['label']}\n\n"
                         f"{side_prompt}"
+                        f"{anchor_lines}"
                     )
 
                 prompts.append(

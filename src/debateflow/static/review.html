@@ -179,6 +179,7 @@
                 <span x-text="dim.label"></span>
               </div>
               <div class="dim-def" x-text="dim.definition"></div>
+              <div class="dim-def" x-show="dim.anchors" x-text="dim.anchors ? '\u274c ' + dim.anchors[1] + '  \u00b7  \u2796 ' + dim.anchors[2] + '  \u00b7  \u2705 ' + dim.anchors[3] : ''"></div>
               <div class="score-row">
                 <span class="side-label aff">AFF</span>
                 <template x-for="v in [{n:1,l:'Weak'},{n:2,l:'OK'},{n:3,l:'Strong'}]" :key="'aff'+di+v.n">
@@ -248,15 +249,15 @@ function reviewApp() {
     feedbackType: '',
 
     dimensions: [
-      { key: 'clash_engagement', label: 'Clash Engagement', definition: 'Did each side address the opponent\'s arguments or talk past them?' },
-      { key: 'burden_fulfillment', label: 'Burden Fulfillment', definition: 'Did each side adequately support their core claims and meet their argumentative obligations?', guidance: {
+      { key: 'clash_engagement', label: 'Clash Engagement', definition: 'Did each side address the opponent\'s arguments or talk past them?', anchors: { 1: 'Talked past the opponent entirely', 2: 'Addressed the opponent\'s general thrust', 3: 'Engaged with multiple specific arguments' } },
+      { key: 'burden_fulfillment', label: 'Burden Fulfillment', definition: 'Did each side adequately support their core claims and meet their argumentative obligations?', anchors: { 1: 'Side-specific obligations unaddressed', 2: 'Attempted their burden but left notable gaps', 3: 'Each element of their burden clearly covered' }, guidance: {
         policy: { aff: 'Did AFF demonstrate a need for change and show the proposal solves it?', neg: 'Did NEG defend the status quo or show the proposal causes more harm?' },
         values: { aff: 'Did AFF show that the value or principle they champion should take precedence?', neg: 'Did NEG show the competing value takes priority or that AFF\'s framing is flawed?' },
         empirical: { aff: 'Did AFF provide sufficient evidence that the claim is true?', neg: 'Did NEG provide sufficient evidence that the claim is false or unsupported?' },
       }},
-      { key: 'rebuttal_quality', label: 'Rebuttal Quality', definition: 'Specificity and depth of refutations \u2014 targeting weak premises vs. asserting disagreement.' },
-      { key: 'argument_extension', label: 'Argument Extension', definition: 'Did arguments develop across turns, or merely repeat the opening?' },
-      { key: 'strategic_adaptation', label: 'Strategic Adaptation', definition: 'Did speakers adjust their approach based on the opponent\'s actual moves?' },
+      { key: 'rebuttal_quality', label: 'Rebuttal Quality', definition: 'Specificity and depth of refutations \u2014 targeting weak premises vs. asserting disagreement.', anchors: { 1: 'Mere contradiction ("that\'s wrong")', 2: 'Challenged conclusions but not underlying reasoning', 3: 'Identified and attacked a specific weak premise' } },
+      { key: 'argument_extension', label: 'Argument Extension', definition: 'Did arguments develop across turns, or merely repeat the opening?', anchors: { 1: 'Repeated opening arguments verbatim', 2: 'Some new framing but no substantive new material', 3: 'Added new evidence or reasoning that advanced the case' } },
+      { key: 'strategic_adaptation', label: 'Strategic Adaptation', definition: 'Did speakers adjust their approach based on the opponent\'s actual moves?', anchors: { 1: 'Could have been written without hearing the opponent', 2: 'Some responsiveness but core approach unchanged', 3: 'Clearly shifted priorities based on how the debate unfolded' } },
     ],
 
     async init() {

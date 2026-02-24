@@ -68,6 +68,10 @@ Sent one at a time, each with three inline buttons. Next message sent on button 
 
 Did the AFFIRMATIVE address the opponent's arguments or talk past them?
 
+❌ Talked past the opponent entirely
+➖ Addressed the opponent's general thrust
+✅ Engaged with multiple specific arguments
+
 [Weak ❌]  [OK ➖]  [Strong ✅]
 ```
 
@@ -77,6 +81,10 @@ On tap → button row updates to show selection → next message sent:
 📊 1/5 — Clash Engagement
 
 Did the NEGATIVE address the opponent's arguments or talk past them?
+
+❌ Talked past the opponent entirely
+➖ Addressed the opponent's general thrust
+✅ Engaged with multiple specific arguments
 
 [Weak ❌]  [OK ➖]  [Strong ✅]
 ```
@@ -90,6 +98,10 @@ Did each side adequately support their core claims and meet their argumentative 
 
 For this empirical debate:
 Did AFF provide sufficient evidence that the claim is true?
+
+❌ Side-specific obligations unaddressed
+➖ Attempted their burden but left notable gaps
+✅ Each element of their burden clearly covered
 
 [Weak ❌]  [OK ➖]  [Strong ✅]
 ```
@@ -206,7 +218,7 @@ Via OpenClaw `message` tool:
   action: "send",
   channel: "telegram",
   to: "<user_id>",
-  message: "📊 1/5 — Clash Engagement\n\nDid the AFFIRMATIVE address the opponent's arguments?",
+  message: "📊 1/5 — Clash Engagement\n\nDid the AFFIRMATIVE address the opponent's arguments?\n\n❌ Talked past the opponent entirely\n➖ Addressed the opponent's general thrust\n✅ Engaged with multiple specific arguments",
   buttons: [
     [
       { text: "Weak ❌", callback_data: "score:a3f2:clash:aff:1" },

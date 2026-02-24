@@ -59,6 +59,20 @@ The rubric draws partial inspiration from the individual speaker criteria used i
 
 The last two dimensions are contributions of this work — central to debate judging but absent from existing quality taxonomies, which are designed for single arguments.
 
+### Score-Level Anchors
+
+Each dimension is scored on a 3-point scale with concrete behavioral anchors. Calibration principle: Weak = conspicuously absent or failed; OK = happened, nothing to remark on; Strong = you'd specifically call it out as well-done.
+
+| Dimension | Weak (1) | OK (2) | Strong (3) |
+|-----------|----------|--------|------------|
+| **Clash Engagement** | Talked past the opponent entirely | Addressed the opponent's general thrust | Engaged with multiple specific arguments |
+| **Burden Fulfillment** | Side-specific obligations unaddressed | Attempted their burden but left notable gaps | Each element of their burden clearly covered |
+| **Rebuttal Quality** | Mere contradiction ("that's wrong") | Challenged conclusions but not underlying reasoning | Identified and attacked a specific weak premise |
+| **Argument Extension** | Repeated opening arguments verbatim | Some new framing but no substantive new material | Added new evidence or reasoning that advanced the case |
+| **Strategic Adaptation** | Could have been written without hearing the opponent | Some responsiveness but core approach unchanged | Clearly shifted priorities based on how the debate unfolded |
+
+Distinguishing the "opponent engagement" trio: **Clash** = breadth (how many arguments addressed); **Rebuttal** = depth (how well dismantled); **Adaptation** = temporal (did approach change between turns).
+
 **Open design decisions.** The pilot will determine whether five dimensions or a reduced set (3–4) yields better inter-annotator reliability, and whether a five-point or three-point scale is appropriate.
 
 ---
