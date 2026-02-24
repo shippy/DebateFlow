@@ -25,9 +25,12 @@ The last two dimensions are central to competitive debate judging but absent fro
 ```
 pyproject.toml              Project config and dependencies
 resolutions.yaml            12 seed resolutions (policy, values, empirical)
+plans/
+    SPEC.md                  Benchmark specification
+    PLAN.md                  Implementation plan
+    VOICE-SPEC.md            Voice synthesis spec
+    TELEGRAM-JUDGING-SPEC.md Telegram judging interface spec
 src/debateflow/
-    __init__.py              Package version
-    __main__.py              python -m debateflow support
     models.py                Pydantic data models
     providers.py             LLM provider factory (Anthropic + OpenAI)
     prompts.py               System prompts and weakness injection templates
@@ -38,9 +41,11 @@ src/debateflow/
     cli.py                   Typer CLI entry point
     server.py                Annotation server with on-demand TTS
     voice.py                 ElevenLabs TTS wrapper
+    telegram_judging.py      Telegram judging session management
     agreement.py             Inter-annotator agreement computation
     static/
         annotate.html        Browser-based annotation tool
+        review.html          Annotation review tool
 output/
     debates/                 Generated debate JSON files
     annotations/             Human annotation JSON files
@@ -131,6 +136,15 @@ uv run debateflow publish --repo your-username/debateflow --dry-run
 # Push to HuggingFace Hub
 uv run debateflow publish --repo your-username/debateflow --public
 ```
+
+## Design docs
+
+See [`plans/`](plans/) for the full specifications:
+
+- [SPEC.md](plans/SPEC.md) — benchmark design, rubric dimensions, and score-level anchors
+- [PLAN.md](plans/PLAN.md) — implementation plan for the generation pipeline
+- [VOICE-SPEC.md](plans/VOICE-SPEC.md) — ElevenLabs voice synthesis for spoken debate playback
+- [TELEGRAM-JUDGING-SPEC.md](plans/TELEGRAM-JUDGING-SPEC.md) — Telegram-based annotation flow via OpenClaw
 
 ## Tests
 
