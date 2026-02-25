@@ -1,0 +1,14 @@
+{
+  "debate_id": "650923d2",
+  "annotator": "SP",
+  "timestamp": "2026-02-25T11:30:00Z",
+  "scores": {
+    "clash": {"aff": 2, "neg": 3},
+    "burden": {"aff": 2, "neg": 2},
+    "rebuttal": {"aff": 2, "neg": 2},
+    "extension": {"aff": 2, "neg": 2},
+    "adaptation": {"aff": 3, "neg": 3}
+  },
+  "winner": "neg",
+  "justification": "Close debate, but neg did a better job of demonstrating feasibility (or lack thereof) of UBI."
+}
