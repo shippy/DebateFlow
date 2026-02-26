@@ -1,0 +1,14 @@
+{
+  "debate_id": "81b4683b",
+  "annotator": "SP",
+  "timestamp": "2026-02-26T06:55:00Z",
+  "scores": {
+    "clash": {"aff": 3, "neg": 3},
+    "burden": {"aff": 3, "neg": 3},
+    "rebuttal": {"aff": 3, "neg": 3},
+    "extension": {"aff": 3, "neg": 3},
+    "adaptation": {"aff": 2, "neg": 2}
+  },
+  "winner": "neg",
+  "justification": "Affirmative rebuts well and with grounding. Neg has good EKC refutation, but not much feasibility (but they're not meant to propose an alternative). Overall a balanced and a very close debate."
+}
