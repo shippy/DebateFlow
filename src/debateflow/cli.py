@@ -184,5 +184,28 @@ def annotate_agreement() -> None:
         typer.echo(f"  {dim:25s}  {scores['aff_kappa']:.3f} / {scores['neg_kappa']:.3f}")
 
 
+@app.command()
+def bot() -> None:
+    """Start the Telegram annotation bot (polling mode)."""
+    import os
+
+    from .telegram_bot import create_application
+
+    token = os.environ.get("DEBATEFLOW_TELEGRAM_TOKEN")
+    if not token:
+        typer.echo("Error: set DEBATEFLOW_TELEGRAM_TOKEN in your environment", err=True)
+        raise typer.Exit(1)
+
+    annotator_ids = os.environ.get("DEBATEFLOW_ANNOTATOR_IDS", "")
+    if annotator_ids:
+        typer.echo(f"Annotator allowlist: {annotator_ids}")
+    else:
+        typer.echo("No annotator allowlist — all users can annotate")
+
+    typer.echo("Starting Telegram bot (polling)…")
+    application = create_application(token)
+    application.run_polling()
+
+
 if __name__ == "__main__":
     app()
