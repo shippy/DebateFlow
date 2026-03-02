@@ -1,0 +1,14 @@
+{
+  "debate_id": "88562f80",
+  "annotator": "SP",
+  "timestamp": "2026-02-26T07:25:00Z",
+  "scores": {
+    "clash": {"aff": 2, "neg": 3},
+    "burden": {"aff": 2, "neg": 3},
+    "rebuttal": {"aff": 2, "neg": 3},
+    "extension": {"aff": 2, "neg": 2},
+    "adaptation": {"aff": 2, "neg": 2}
+  },
+  "winner": "neg",
+  "justification": "Negative prevails in principle in absence of the Affirmative articulating substantive evidence for their position."
+}
