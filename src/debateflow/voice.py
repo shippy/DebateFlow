@@ -6,6 +6,7 @@ import hashlib
 import logging
 import os
 from itertools import combinations
+from pathlib import Path
 from typing import Literal
 
 logger = logging.getLogger(__name__)
@@ -184,3 +185,56 @@ def synthesize_turn(text: str, voice_info: dict[str, str], **kwargs) -> bytes:
         return synthesize_turn_openai(text, vname)
 
     raise ValueError("No TTS provider available — set an API key.")
+
+
+# ---------------------------------------------------------------------------
+# Full-debate synthesis
+# ---------------------------------------------------------------------------
+
+def synthesize_debate(
+    debate: dict,
+    output_dir: str,
+    **kwargs,
+) -> dict[str, str]:
+    """Synthesize all 4 turns of a debate to MP3 files.
+
+    Args:
+        debate: Raw debate dict (as loaded from JSON).
+        output_dir: Base directory for audio output.
+        **kwargs: Extra settings forwarded to ``synthesize_turn``
+                  (e.g. stability, style).
+
+    Returns:
+        Mapping ``turn_1``..``turn_4`` → absolute MP3 file paths.
+    """
+    # Extract debate_id (handle both flat and nested metadata layouts)
+    debate_id: str = debate.get("debate_id") or debate["metadata"]["debate_id"]
+    turns: list[dict] = debate["turns"]
+
+    if len(turns) != 4:
+        raise ValueError(f"Expected 4 turns, got {len(turns)}")
+
+    provider = get_provider()
+    aff_voice, neg_voice = pick_voice_pair(debate_id, provider)
+
+    debate_dir = Path(output_dir) / debate_id
+    debate_dir.mkdir(parents=True, exist_ok=True)
+
+    result: dict[str, str] = {}
+
+    for i, turn in enumerate(turns, start=1):
+        speaker = turn["speaker"].lower()
+        voice = aff_voice if speaker == "aff" else neg_voice
+
+        mp3_path = debate_dir / f"turn_{i}_{speaker}.mp3"
+
+        if mp3_path.exists() and mp3_path.stat().st_size > 0:
+            logger.info("Using cached audio: %s", mp3_path)
+        else:
+            logger.info("Synthesizing turn %d (%s) for debate %s", i, speaker, debate_id)
+            audio_bytes = synthesize_turn(turn["text"], voice, **kwargs)
+            mp3_path.write_bytes(audio_bytes)
+
+        result[f"turn_{i}"] = str(mp3_path)
+
+    return result

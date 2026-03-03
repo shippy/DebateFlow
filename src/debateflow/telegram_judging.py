@@ -59,7 +59,7 @@ class TelegramJudgingSession:
 
     def prepare_audio(self, debate: dict) -> str:
         """Synthesize and stitch audio. Returns path to OGG file."""
-        debate_id = debate["debate_id"]
+        debate_id = debate["metadata"]["debate_id"]
         output_dir = Path("output/audio")
         output_dir.mkdir(parents=True, exist_ok=True)
 
