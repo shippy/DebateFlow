@@ -1,0 +1,14 @@
+{
+  "debate_id": "6cfb386d",
+  "annotator": "SP",
+  "timestamp": "2026-02-25T12:00:00Z",
+  "scores": {
+    "clash": {"aff": 3, "neg": 1},
+    "burden": {"aff": 3, "neg": 1},
+    "rebuttal": {"aff": 3, "neg": 2},
+    "extension": {"aff": 3, "neg": 1},
+    "adaptation": {"aff": 2, "neg": 1}
+  },
+  "winner": "aff",
+  "justification": "N2 reversed herself in part, but keeping with her line wouldn't have saved her evidence-free rebuttals"
+}
