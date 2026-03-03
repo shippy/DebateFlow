@@ -7,20 +7,23 @@ build/
 
 # Environment
 .env
+.env.*
 .venv/
 
 # Output (keep debates/ and annotations/ tracked)
 output/audio/
 output/debateflow.jsonl
+output/telegram_bot_data.pickle
 
 # Tool caches
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
 
-# IDE
+# IDE / AI tools
 .idea/
 .vscode/
+.claude/
 *.swp
 *.swo
 
