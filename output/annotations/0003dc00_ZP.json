@@ -1,0 +1,29 @@
+{
+  "debate_id": "0003dc00",
+  "annotator": "ZP",
+  "timestamp": "2026-03-07T20:16:31.495212+00:00",
+  "scores": {
+    "clash": {
+      "AFF": 3,
+      "NEG": 3
+    },
+    "burden_of_proof": {
+      "AFF": 3,
+      "NEG": 2
+    },
+    "rebuttal": {
+      "AFF": 2,
+      "NEG": 2
+    },
+    "extension": {
+      "AFF": 2,
+      "NEG": 3
+    },
+    "adaptation": {
+      "AFF": 2,
+      "NEG": 2
+    }
+  },
+  "winner": "NEG",
+  "justification": "I think the negative had a bit of edge in analysis over affirmative which I valued more than the raw evidence"
+}
