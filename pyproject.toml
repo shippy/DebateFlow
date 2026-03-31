@@ -47,3 +47,6 @@ dev = [
     "ruff>=0.15.1",
     "types-pyyaml>=6.0.12.20250915",
 ]
+
+[tool.uv]
+exclude-newer = "7 days"
